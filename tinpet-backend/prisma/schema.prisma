@@ -25,6 +25,7 @@ model Pet {
   name      String
   age       Int
   breed     String
+  gender    String?
   ownerId   Int
   owner     User    @relation(fields: [ownerId], references: [id])
   matchesAsPet1 Match[] @relation("Pet1ToMatch")

@@ -17,6 +17,10 @@ app.use(morgan("dev"));
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 const requireAuth = auth({
   audience: process.env.AUTH0_AUDIENCE,
   issuerBaseURL: process.env.AUTH0_ISSUER,
@@ -38,10 +42,38 @@ app.get("/api/pets/:id", requireAuth, async (req, res) => {
   res.json(pet);
 });
 
+app.get("/api/pets", requireAuth, async (req, res) => {
+    const pets = await prisma.pet.findMany();
+    res.json(pets);
+});
+
+app.get("/api/users", requireAuth, async (req, res) => {
+    const users = await prisma.user.findMany();
+    res.json(users);
+});
+
+app.get("/api/matches", requireAuth, async (req, res) => {
+    const matches = await prisma.match.findMany();
+    res.json(matches);
+});
+
+app.post("/api/users", async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const user = await prisma.user.create({
+      data: { name, email },
+    });
+    res.status(201).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
 app.post("/api/pets", requireAuth, async (req, res) => {
-  const { name, age, breed } = req.body;
+  const { name, age, breed, gender, ownerId } = req.body;
   const pet = await prisma.pet.create({
-    data: { name, age, breed },
+    data: { name, age, breed, gender, ownerId },
   });
   res.status(201).json(pet);
 });
@@ -56,11 +88,11 @@ app.post("/api/matches", requireAuth, async (req, res) => {
 
 app.put("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { name, age, breed } = req.body;
+  const { name, age, breed,gender } = req.body;
   try {
     const pet = await prisma.pet.update({
       where: { id: parseInt(id) },
-      data: { name, age, breed },
+      data: { name, age, breed,gender },
     });
     res.json(pet);
   } catch (error) {
