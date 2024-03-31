@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from "react";
 import "tailwindcss/tailwind.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
+  const navigate = useNavigate();
   const [pets, setPets] = useState([]);
+
+  const handleMatchClick = () => {
+    navigate("/login");
+  };
 
   useEffect(() => {
     async function fetchPets() {
@@ -29,20 +35,28 @@ function HomePage() {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-4 gap-4 gap-y-16">
       {pets.map((pet) => (
-        <div
-          key={pet.id}
-          className="card bg-white rounded-lg overflow-hidden shadow-md"
-        >
+        <div key={pet.id} className="relative group">
           <img
             src={pet.image}
             alt={pet.name}
-            className="object-cover object-center h-full w-full"
+            className="object-cover w-full h-full"
           />
-          <div className="p-4">
-            <h5 className="text-lg font-bold mb-2">{pet.name}</h5>
+          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity duration-300">
+            <div className="text-white text-center">
+              <p className="font-bold">{pet.name}</p>
+              <p>Breed: {pet.breed}</p>
+              <p>Age: {pet.age}</p>
+              <p>Gender: {pet.gender}</p>
+            </div>
           </div>
+          <button
+            onClick={handleMatchClick}
+            className="w-full bg-blue-500 text-white p-2 hover:bg-blue-700"
+          >
+            Match!
+          </button>
         </div>
       ))}
     </div>
