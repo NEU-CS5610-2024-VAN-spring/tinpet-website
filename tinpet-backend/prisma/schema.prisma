@@ -27,6 +27,7 @@ model Pet {
   breed     String
   gender    String?
   ownerId   Int
+  image     String?
   owner     User    @relation(fields: [ownerId], references: [id])
   matchesAsPet1 Match[] @relation("Pet1ToMatch")
   matchesAsPet2 Match[] @relation("Pet2ToMatch")

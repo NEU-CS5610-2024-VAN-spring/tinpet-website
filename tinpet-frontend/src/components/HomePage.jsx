@@ -1,69 +1,47 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
+import "tailwindcss/tailwind.css";
 
 function HomePage() {
   const [pets, setPets] = useState([]);
 
-  const catApiUrl = `https://placekitten.com/300/300`;
-  const dogApiUrl = `https://dog.ceo/api/breeds/image/random`;
+  useEffect(() => {
+    async function fetchPets() {
+      try {
+        const response = await fetch("http://localhost:8000/api/pets");
+        if (!response.ok) {
+          throw new Error("Failed to fetch pets");
+        }
+        const petsData = await response.json();
 
-  const fetchRandomPetImage = useCallback(async () => {
-    try {
-      const isCat = Math.random() > 0.5;
-      const apiUrl = isCat ? catApiUrl : dogApiUrl;
-
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error("Failed to fetch image");
+        const randomPets = getRandomPets(petsData, 8);
+        setPets(randomPets);
+      } catch (error) {
+        console.error("Error fetching pets:", error);
       }
-
-      const data = isCat ? { message: apiUrl } : await response.json();
-      return data.message;
-    } catch (error) {
-      console.error(error);
-      return fetchRandomPetImage();
     }
-  }, [catApiUrl, dogApiUrl]);
 
-  const fetchRandomPetName = async () => {
-    try {
-      const response = await fetch("/generate-pet-name");
-      const result = await response.json();
-      return result.name;
-    } catch (error) {
-      console.error("Failed to fetch pet name:", error);
-      return "Unknown";
-    }
+    fetchPets();
+  }, []);
+
+  const getRandomPets = (petsList, count) => {
+    const shuffledPets = petsList.sort(() => 0.5 - Math.random());
+    return shuffledPets.slice(0, count);
   };
 
-  useEffect(() => {
-    async function loadPets() {
-      const petData = await Promise.all(
-        Array.from({ length: 10 }, async () => {
-          const image = await fetchRandomPetImage();
-          const name = await fetchRandomPetName();
-          return { image, name };
-        })
-      );
-
-      setPets(
-        petData.map((pet, index) => ({
-          id: index,
-          name: pet.name,
-          image: pet.image,
-        }))
-      );
-    }
-
-    loadPets();
-  }, [fetchRandomPetImage]);
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4">
       {pets.map((pet) => (
-        <div key={pet.id} className="card">
-          <img src={pet.image} alt={pet.name} className="card-img" />
-          <div className="card-body">
-            <h5 className="card-title">{pet.name}</h5>
+        <div
+          key={pet.id}
+          className="card bg-white rounded-lg overflow-hidden shadow-md"
+        >
+          <img
+            src={pet.image}
+            alt={pet.name}
+            className="object-cover object-center h-full w-full"
+          />
+          <div className="p-4">
+            <h5 className="text-lg font-bold mb-2">{pet.name}</h5>
           </div>
         </div>
       ))}

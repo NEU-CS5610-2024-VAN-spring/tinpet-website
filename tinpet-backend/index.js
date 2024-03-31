@@ -45,7 +45,7 @@ app.get("/api/pets/:id", requireAuth, async (req, res) => {
   res.json(pet);
 });
 
-app.get("/api/pets", requireAuth, async (req, res) => {
+app.get("/api/pets", async (req, res) => {
   const pets = await prisma.pet.findMany();
   res.json(pets);
 });
@@ -109,32 +109,6 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
     where: { id: parseInt(id) },
   });
   res.status(204).send();
-});
-
-app.get("/generate-pet-name", async (req, res) => {
-  const url = 'https://pet-name-generator.p.rapidapi.com/all-pet-names';
-  const options = {
-    method: "GET",
-    headers: {
-      "X-RapidAPI-Key": '5c4ee685c5msh15f5fb7e04144bfp154e2fjsn3fd6631e30ff',
-      "X-RapidAPI-Host": 'pet-name-generator.p.rapidapi.com'
-    },
-  };
-
-  // Fetch pet name from the pet name generator API, not working now, need to be fixed
-  try {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-        console.error('API response', await response.text());
-        throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const result = await response.json();
-    console.log('Pet name:', result);
-    res.json(result);
-} catch (error) {
-    console.error('Error fetching from pet name generator:', error);
-    res.status(500).send('Error fetching pet name');
-}
 });
 
 app.listen(port, () => {
