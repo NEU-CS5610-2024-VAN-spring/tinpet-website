@@ -29,6 +29,7 @@ model Pet {
   ownerId   Int
   image     String?
   owner     User    @relation(fields: [ownerId], references: [id])
+  // delete
   matchesAsPet1 Match[] @relation("Pet1ToMatch")
   matchesAsPet2 Match[] @relation("Pet2ToMatch")
 }

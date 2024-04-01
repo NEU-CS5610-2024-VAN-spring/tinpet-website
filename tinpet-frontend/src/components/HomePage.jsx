@@ -1,13 +1,19 @@
 import "tailwindcss/tailwind.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function HomePage() {
   const navigate = useNavigate();
   const [pets, setPets] = useState([]);
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
 
   const handleMatchClick = () => {
-    navigate("/login");
+    if (isAuthenticated) {
+      navigate("/profile");
+      return;
+    }
+    navigate("/verify-user");
   };
 
   useEffect(() => {
@@ -56,6 +62,12 @@ function HomePage() {
             className="w-full bg-blue-500 text-white p-2 hover:bg-blue-700"
           >
             Match!
+          </button>
+          <button
+            className="w-full bg-green-500 text-white p-2 hover:bg-green-700 mt-2"
+            onClick={handleMatchClick}
+          >
+            Login Here
           </button>
         </div>
       ))}

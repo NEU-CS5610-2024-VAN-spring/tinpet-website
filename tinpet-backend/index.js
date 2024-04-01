@@ -111,6 +111,32 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   res.status(204).send();
 });
 
+app.post("/verify-user", requireAuth, async (req, res) => {
+  const auth0Id = req.auth.payload.sub;
+  const email = req.auth.payload[`${process.env.AUTH0_AUDIENCE}/email`];
+  const name = req.auth.payload[`${process.env.AUTH0_AUDIENCE}/name`];
+
+  const user = await prisma.user.findUnique({
+    where: {
+      auth0Id,
+    },
+  });
+
+  if (user) {
+    res.json(user);
+  } else {
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        auth0Id,
+        name,
+      },
+    });
+
+    res.json(newUser);
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
