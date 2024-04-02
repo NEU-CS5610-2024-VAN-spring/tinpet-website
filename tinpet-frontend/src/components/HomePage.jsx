@@ -8,12 +8,13 @@ function HomePage() {
   const [pets, setPets] = useState([]);
   const { isAuthenticated, loginWithRedirect } = useAuth0();
 
-  const handleMatchClick = () => {
+  const handleMatchClick = (petId) => {
     if (isAuthenticated) {
-      navigate("/profile");
-      return;
+      navigate(`/details/${petId}`);
+    } else {
+      sessionStorage.setItem("redirectToPetId", petId);
+      loginWithRedirect();
     }
-    navigate("/verify-user");
   };
 
   useEffect(() => {
@@ -41,36 +42,48 @@ function HomePage() {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-4 gap-y-16">
-      {pets.map((pet) => (
-        <div key={pet.id} className="relative group">
-          <img
-            src={pet.image}
-            alt={pet.name}
-            className="object-cover w-full h-full"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity duration-300">
-            <div className="text-white text-center">
-              <p className="font-bold">{pet.name}</p>
-              <p>Breed: {pet.breed}</p>
-              <p>Age: {pet.age}</p>
-              <p>Gender: {pet.gender}</p>
+    <div>
+      <div className="fixed top-0 right-0 p-4">
+        {!isAuthenticated && (
+          <button
+            className="bg-blue-500 text-white p-2 hover:bg-green-700"
+            onClick={() => loginWithRedirect()}
+          >
+            Login
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-4 gap-12 gap-y-24 mt-16">
+        {pets.map((pet) => (
+          <div
+            key={pet.id}
+            className="relative group rounded-lg overflow-hidden shadow-lg transform transition duration-300 hover:scale-105"
+          >
+            <div className="w-full h-48 bg-yellow-100 flex justify-center items-center overflow-hidden">
+              <img
+                src={pet.image}
+                alt={pet.name}
+                className="object-cover w-full h-full rounded-lg"
+                style={{ objectPosition: "center 25%" }}
+              />
+            </div>
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center transition-opacity duration-300">
+              <div className="text-white text-center p-4">
+                <p className="font-bold">{pet.name}</p>
+                <p>Breed: {pet.breed}</p>
+                <p>Age: {pet.age}</p>
+                <p>Gender: {pet.gender}</p>
+                <button
+                  onClick={() => handleMatchClick(pet.id)}
+                  className="bg-orange-500 text-white p-2 hover:bg-blue-700 mt-2"
+                >
+                  Match!
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            onClick={handleMatchClick}
-            className="w-full bg-blue-500 text-white p-2 hover:bg-blue-700"
-          >
-            Match!
-          </button>
-          <button
-            className="w-full bg-green-500 text-white p-2 hover:bg-green-700 mt-2"
-            onClick={handleMatchClick}
-          >
-            Login Here
-          </button>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
