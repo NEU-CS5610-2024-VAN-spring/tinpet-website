@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./components/HomePage";
 import ProfilePage from "./components/ProfilePage";
@@ -6,6 +6,7 @@ import VerifyUser from "./components/VerifyUser";
 import DetailsPage from "./components/DetailsPage";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { AuthTokenProvider } from "./AuthTokenContext";
+import { PostLoginRedirect } from "./components/PostLoginRedirect";
 
 const requestedScopes = ["profile", "email"];
 
@@ -25,7 +26,7 @@ function App() {
       domain={process.env.REACT_APP_AUTH0_DOMAIN}
       clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
       authorizationParams={{
-        redirect_uri: `${window.location.origin}/profile`,
+        redirect_uri: `${window.location.origin}`,
         audience: process.env.REACT_APP_AUTH0_AUDIENCE,
         scope: requestedScopes.join(" "),
       }}
@@ -43,8 +44,16 @@ function App() {
               }
             />
             <Route path="/verify-user" element={<VerifyUser />} />
-            <Route path="/details/:identifier" element={<DetailsPage />} />
+            <Route
+              path="/details/:petId"
+              element={
+                <RequireAuth>
+                  <DetailsPage />
+                </RequireAuth>
+              }
+            />
           </Routes>
+          <PostLoginRedirect />
         </BrowserRouter>
       </AuthTokenProvider>
     </Auth0Provider>

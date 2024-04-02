@@ -46,7 +46,7 @@ export function VerifyUser() {
     if (!isAuthenticated) {
       loginWithRedirect();
     } else if (accessToken) {
-      navigate("/profile");
+      navigate("/");
     }
   }, [isAuthenticated, accessToken, loginWithRedirect, navigate]);
 

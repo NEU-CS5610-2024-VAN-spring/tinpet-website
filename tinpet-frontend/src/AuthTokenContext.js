@@ -16,7 +16,7 @@ function AuthTokenProvider({ children }) {
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-            // scope: requestedScopes.join(" "),
+            scope: requestedScopes.join(" "),
           },
         });
         setAccessToken(token);

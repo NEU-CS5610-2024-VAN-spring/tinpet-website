@@ -5,7 +5,6 @@ import pkg from "@prisma/client";
 import morgan from "morgan";
 import cors from "cors";
 import { auth } from "express-oauth2-jwt-bearer";
-import fetch from "node-fetch";
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -39,10 +38,20 @@ app.use(express.json());
 
 app.get("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const pet = await prisma.pet.findUnique({
-    where: { id: parseInt(id) },
-  });
-  res.json(pet);
+  const petId = parseInt(id, 10);
+  if (isNaN(petId)) {
+    return res.status(400).send("Pet ID must be a number");
+  }
+
+  try {
+    const pet = await prisma.pet.findUnique({
+      where: { id: petId },
+    });
+    res.json(pet);
+  } catch (error) {
+    console.error("Error fetching pet details:", error);
+    res.status(500).send("Error fetching pet details");
+  }
 });
 
 app.get("/api/pets", async (req, res) => {
@@ -52,7 +61,20 @@ app.get("/api/pets", async (req, res) => {
 
 app.get("/api/users", requireAuth, async (req, res) => {
   const users = await prisma.user.findMany();
-  res.json(users);
+  const petId = parseInt(id, 10);
+  if (isNaN(petId)) {
+    return res.status(400).send("Invalid pet ID"); // Send an error if id is not a valid number
+  }
+
+  try {
+    const pet = await prisma.pet.findUnique({
+      where: { id: petId },
+    });
+    res.json(pet);
+  } catch (error) {
+    console.error("Error fetching pet details:", error);
+    res.status(500).send("Error fetching pet details");
+  }
 });
 
 app.get("/api/matches", requireAuth, async (req, res) => {
