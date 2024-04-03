@@ -5,42 +5,93 @@ import { useAuth0 } from "@auth0/auth0-react";
 function DetailsPage() {
   const { petId } = useParams();
   const [petDetails, setPetDetails] = useState(null);
+  const [allPets, setAllPets] = useState(null);
   const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    async function fetchPetDetails() {
+    async function fetchDetails() {
       try {
         const token = await getAccessTokenSilently();
-        const response = await fetch(
-          `http://localhost:8000/api/pets/${petId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) throw new Error("Failed to fetch pet details");
+        let url = `http://localhost:8000/api/pets${petId ? `/${petId}` : ""}`;
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
         const data = await response.json();
-        setPetDetails(data);
+
+        if (petId) {
+          setPetDetails(data);
+        } else {
+          setAllPets(data);
+        }
       } catch (error) {
-        console.error("Error fetching pet details:", error);
+        console.error("Error:", error);
       }
     }
 
-    fetchPetDetails();
+    fetchDetails();
   }, [petId, getAccessTokenSilently]);
 
-  if (!petDetails) return <div>Loading...</div>;
-
-  return (
-    <div>
-      <h1>{petDetails.name}</h1>
-      <img src={petDetails.image} alt={petDetails.name} />
-      <p>Age: {petDetails.age}</p>
-      <p>Breed: {petDetails.breed}</p>
-      <p>Gender: {petDetails.gender}</p>
-    </div>
-  );
+  if (!petId && allPets) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {allPets.map((pet) => (
+            <div
+              key={pet.id}
+              className="bg-white rounded-lg shadow overflow-hidden"
+            >
+              <img
+                src={pet.image}
+                alt={pet.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h2 className="text-xl font-semibold text-gray-700">
+                  {pet.name}
+                </h2>
+                <p className="text-gray-600">Breed: {pet.breed}</p>
+                <p className="text-gray-600">Age: {pet.age}</p>
+                <p className="text-gray-600">Gender: {pet.gender}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  } else if (petDetails) {
+    return (
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden md:max-w-2xl my-8">
+        <div className="md:flex">
+          <div className="md:flex-shrink-0">
+            <img
+              className="h-48 w-full object-cover md:h-full md:w-48"
+              src={petDetails.image}
+              alt={petDetails.name}
+            />
+          </div>
+          <div className="p-8">
+            <h1 className="block mt-1 text-lg leading-tight font-medium text-black">
+              {petDetails.name}
+            </h1>
+            <p className="mt-2 text-gray-500">Age: {petDetails.age}</p>
+            <p className="text-gray-500">Breed: {petDetails.breed}</p>
+            <p className="text-gray-500">Gender: {petDetails.gender}</p>
+          </div>
+        </div>
+      </div>
+    );
+  } else {
+    return <div className="text-center py-8">Loading...</div>;
+  }
 }
 
 export default DetailsPage;

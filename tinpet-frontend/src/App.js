@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import NavigationBar from "./components/NavigationBar";
 import HomePage from "./components/HomePage";
 import ProfilePage from "./components/ProfilePage";
 import VerifyUser from "./components/VerifyUser";
@@ -33,6 +34,7 @@ function App() {
     >
       <AuthTokenProvider>
         <BrowserRouter>
+          <NavigationBar />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route
@@ -46,6 +48,14 @@ function App() {
             <Route path="/verify-user" element={<VerifyUser />} />
             <Route
               path="/details/:petId"
+              element={
+                <RequireAuth>
+                  <DetailsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/details"
               element={
                 <RequireAuth>
                   <DetailsPage />
