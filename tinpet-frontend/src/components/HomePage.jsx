@@ -11,14 +11,12 @@ function HomePage() {
   useEffect(() => {
     async function fetchPets() {
       try {
-        const response = await fetch("http://localhost:8000/api/pets");
+        const response = await fetch("http://localhost:8000/api/pets/latest");
         if (!response.ok) {
           throw new Error("Failed to fetch pets");
         }
         const petsData = await response.json();
-
-        const randomPets = getRandomPets(petsData, 8);
-        setPets(randomPets);
+        setPets(petsData);
       } catch (error) {
         console.error("Error fetching pets:", error);
       }

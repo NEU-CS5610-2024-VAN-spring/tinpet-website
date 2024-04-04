@@ -36,6 +36,21 @@ app.get("/api/protected", requireAuth, (req, res) => {
 
 app.use(express.json());
 
+app.get("/api/pets/latest", async (req, res) => {
+  try {
+    const latestPets = await prisma.pet.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
+    });
+    res.json(latestPets);
+  } catch (error) {
+    console.error("Error fetching latest pets:", error);
+    res.status(500).send("Error fetching latest pets");
+  }
+});
+
 app.get("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
   const petId = parseInt(id, 10);
@@ -60,20 +75,12 @@ app.get("/api/pets", async (req, res) => {
 });
 
 app.get("/api/users", requireAuth, async (req, res) => {
-  const users = await prisma.user.findMany();
-  const petId = parseInt(id, 10);
-  if (isNaN(petId)) {
-    return res.status(400).send("Invalid pet ID"); // Send an error if id is not a valid number
-  }
-
   try {
-    const pet = await prisma.pet.findUnique({
-      where: { id: petId },
-    });
-    res.json(pet);
+    const users = await prisma.user.findMany();
+    res.json(users);
   } catch (error) {
-    console.error("Error fetching pet details:", error);
-    res.status(500).send("Error fetching pet details");
+    console.error("Error fetching users:", error);
+    res.status(500).send("Error fetching users");
   }
 });
 
@@ -83,6 +90,7 @@ app.get("/api/matches", requireAuth, async (req, res) => {
 });
 
 app.post("/api/users", async (req, res) => {
+  console.log(req.body);
   const { name, email } = req.body;
   try {
     const user = await prisma.user.create({
@@ -96,9 +104,9 @@ app.post("/api/users", async (req, res) => {
 });
 
 app.post("/api/pets", requireAuth, async (req, res) => {
-  const { name, age, breed, gender, ownerId } = req.body;
+  const { name, age, breed, gender, ownerId, image } = req.body;
   const pet = await prisma.pet.create({
-    data: { name, age, breed, gender, ownerId },
+    data: { name, age, breed, gender, ownerId, image },
   });
   res.status(201).json(pet);
 });
@@ -113,14 +121,16 @@ app.post("/api/matches", requireAuth, async (req, res) => {
 
 app.put("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { name, age, breed, gender } = req.body;
+  const { name, age, breed, gender, image } = req.body;
+
   try {
     const pet = await prisma.pet.update({
-      where: { id: parseInt(id) },
-      data: { name, age, breed, gender },
+      where: { id: parseInt(id, 10) },
+      data: { name, age, breed, gender, image },
     });
     res.json(pet);
   } catch (error) {
+    console.error("Error updating pet:", error);
     res.status(500).json({ error: "Failed to update pet" });
   }
 });

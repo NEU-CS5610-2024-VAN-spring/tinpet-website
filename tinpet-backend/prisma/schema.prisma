@@ -14,30 +14,30 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  pets      Pet[]
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  name  String
+  pets  Pet[]
 }
 
 model Pet {
-  id        Int      @id @default(autoincrement())
-  name      String
-  age       Int
-  breed     String
-  gender    String?
-  ownerId   Int
-  image     String?
-  owner     User    @relation(fields: [ownerId], references: [id])
-  // delete
-  matchesAsPet1 Match[] @relation("Pet1ToMatch")
-  matchesAsPet2 Match[] @relation("Pet2ToMatch")
+  id            Int      @id @default(autoincrement())
+  name          String
+  age           Int
+  breed         String
+  gender        String?
+  ownerId       Int
+  image         String?
+  owner         User     @relation(fields: [ownerId], references: [id])
+  createdAt     DateTime @default(now())
+  matchesAsPet1 Match[]  @relation("Pet1ToMatch")
+  matchesAsPet2 Match[]  @relation("Pet2ToMatch")
 }
 
 model Match {
-  id      Int  @id @default(autoincrement())
-  pet1Id  Int
-  pet2Id  Int
-  pet1    Pet @relation("Pet1ToMatch", fields: [pet1Id], references: [id])
-  pet2    Pet @relation("Pet2ToMatch", fields: [pet2Id], references: [id])
+  id     Int @id @default(autoincrement())
+  pet1Id Int
+  pet2Id Int
+  pet1   Pet @relation("Pet1ToMatch", fields: [pet1Id], references: [id])
+  pet2   Pet @relation("Pet2ToMatch", fields: [pet2Id], references: [id])
 }
