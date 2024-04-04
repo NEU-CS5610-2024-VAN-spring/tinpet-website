@@ -84,22 +84,42 @@ app.get("/api/users", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/my-pets", requireAuth, async (req, res) => {
+  const auth0Id = req.auth.payload.sub;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      include: { pets: true },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user.pets);
+  } catch (error) {
+    console.error("Error fetching user's pets:", error);
+    res.status(500).send("Error fetching user's pets");
+  }
+});
+
 app.get("/api/matches", requireAuth, async (req, res) => {
   const matches = await prisma.match.findMany();
   res.json(matches);
 });
 
 app.post("/api/users", async (req, res) => {
-  console.log(req.body);
-  const { name, email } = req.body;
+  const { name, email, auth0Id } = req.body;
+
   try {
-    const user = await prisma.user.create({
-      data: { name, email },
+    const user = await prisma.user.upsert({
+      where: { auth0Id },
+      update: { name, email },
+      create: { name, email, auth0Id },
     });
+
     res.status(201).json(user);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create user" });
+    console.error("Failed to create or update user", error);
+    res.status(500).json({ error: "Failed to create or update user" });
   }
 });
 
@@ -143,29 +163,20 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   res.status(204).send();
 });
 
-app.post("/verify-user", requireAuth, async (req, res) => {
-  const auth0Id = req.auth.payload.sub;
-  const email = req.auth.payload[`${process.env.AUTH0_AUDIENCE}/email`];
-  const name = req.auth.payload[`${process.env.AUTH0_AUDIENCE}/name`];
+app.post("/api/users", async (req, res) => {
+  const { name, email, auth0Id } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      auth0Id,
-    },
-  });
-
-  if (user) {
-    res.json(user);
-  } else {
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        auth0Id,
-        name,
-      },
+  try {
+    const user = await prisma.user.upsert({
+      where: { auth0Id },
+      update: { name, email },
+      create: { name, email, auth0Id },
     });
 
-    res.json(newUser);
+    res.status(201).json(user);
+  } catch (error) {
+    console.error("Failed to create or update user", error);
+    res.status(500).json({ error: "Failed to create or update user" });
   }
 });
 

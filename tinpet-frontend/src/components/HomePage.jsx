@@ -25,11 +25,6 @@ function HomePage() {
     fetchPets();
   }, []);
 
-  const getRandomPets = (petsList, count) => {
-    const shuffledPets = petsList.sort(() => 0.5 - Math.random());
-    return shuffledPets.slice(0, count);
-  };
-
   const handleMatchClick = (petId) => {
     if (isAuthenticated) {
       navigate(`/details/${petId}`);

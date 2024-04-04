@@ -14,7 +14,8 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
+  auth0Id      String   @unique @default("")
   email String @unique
   name  String
   pets  Pet[]
