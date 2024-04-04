@@ -5,7 +5,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 function HomePage() {
   const [pets, setPets] = useState([]);
-  const { loginWithRedirect } = useAuth0();
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchPets() {
@@ -32,13 +33,12 @@ function HomePage() {
   };
 
   const handleMatchClick = (petId) => {
-    console.log("Matching petId:", petId);
-    if (!petId) {
-      console.error("petId is undefined");
-      return;
+    if (isAuthenticated) {
+      navigate(`/details/${petId}`);
+    } else {
+      sessionStorage.setItem("postLoginRedirectPetId", petId.toString());
+      loginWithRedirect();
     }
-    sessionStorage.setItem("postLoginRedirectPetId", petId.toString());
-    loginWithRedirect();
   };
 
   return (
