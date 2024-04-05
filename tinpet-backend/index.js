@@ -84,6 +84,23 @@ app.get("/api/users", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/me", requireAuth, async (req, res) => {
+  const auth0Id = req.auth.payload.sub;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      auth0Id,
+    },
+    include: { pets: true },
+  });
+
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).send("User not found");
+  }
+});
+
 app.get("/api/my-pets", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
   try {
@@ -106,14 +123,40 @@ app.get("/api/matches", requireAuth, async (req, res) => {
   res.json(matches);
 });
 
+app.post("/verify-user", requireAuth, async (req, res) => {
+  const auth0Id = req.auth.payload.sub;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { auth0Id } });
+
+    if (user) {
+      res.json(user);
+    } else {
+      const newUser = await prisma.user.create({
+        data: {
+          auth0Id,
+          email: req.auth.payload.email,
+          name: req.auth.payload.name,
+        },
+        include: { pets: true },
+      });
+      res.status(201).json(newUser);
+    }
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    res.status(500).send("Error verifying user");
+  }
+});
+
 app.post("/api/users", async (req, res) => {
-  const { name, email, auth0Id } = req.body;
+  const { auth0Id, email, name } = req.body;
 
   try {
     const user = await prisma.user.upsert({
       where: { auth0Id },
       update: { name, email },
       create: { name, email, auth0Id },
+      include: { pets: true },
     });
 
     res.status(201).json(user);
@@ -163,21 +206,20 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   res.status(204).send();
 });
 
-app.post("/api/users", async (req, res) => {
-  const { name, email, auth0Id } = req.body;
+app.delete("/api/matches/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  await prisma.match.delete({
+    where: { id: parseInt(id) },
+  });
+  res.status(204).send();
+});
 
-  try {
-    const user = await prisma.user.upsert({
-      where: { auth0Id },
-      update: { name, email },
-      create: { name, email, auth0Id },
-    });
-
-    res.status(201).json(user);
-  } catch (error) {
-    console.error("Failed to create or update user", error);
-    res.status(500).json({ error: "Failed to create or update user" });
-  }
+app.delete("/api/users/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  await prisma.user.delete({
+    where: { id: parseInt(id) },
+  });
+  res.status(204).send();
 });
 
 app.listen(port, () => {

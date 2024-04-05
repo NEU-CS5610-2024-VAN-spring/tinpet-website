@@ -7,29 +7,39 @@ function ProfilePage() {
   const { user: auth0User, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserAndPets = async () => {
       try {
         const token = await getAccessTokenSilently();
-
-        const response = await fetch("http://localhost:8000/api/my-pets", {
+  
+        const auth0UserId = auth0User.sub;
+  
+        let response = await fetch("http://localhost:8000/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ auth0Id: auth0UserId, email: auth0User.email, name: auth0User.name }),
+        });
+  
+        const userData = await response.json();
+  
+        setUser(userData);
+  
+        response = await fetch("http://localhost:8000/api/my-pets", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-
-        if (response.ok) {
-          const petsData = await response.json();
-          setPets(petsData);
-        } else {
-          console.error("Failed to fetch pets data");
-        }
+  
+        const petsData = await response.json();
+        setPets(petsData);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
-    fetchData();
+  
+    fetchUserAndPets();
   }, [auth0User, getAccessTokenSilently]);
 
   const handleEditPet = (pet) => {
