@@ -7,6 +7,7 @@ import cors from "cors";
 import { auth } from "express-oauth2-jwt-bearer";
 
 const app = express();
+app.use(express.json({ limit: "10mb" }));
 const port = process.env.PORT || 8000;
 
 app.use(cors());
@@ -84,6 +85,25 @@ app.get("/api/users", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/user", requireAuth, async (req, res) => {
+  const auth0Id = req.auth.payload.sub;
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        auth0Id: auth0Id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: "Failed to fetch user data" });
+  }
+});
+
 app.get("/me", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
 
@@ -125,7 +145,8 @@ app.get("/api/matches", requireAuth, async (req, res) => {
 
 app.post("/verify-user", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
-
+  console.log("auth0Id", auth0Id);
+  s;
   try {
     const user = await prisma.user.findUnique({ where: { auth0Id } });
 
@@ -168,8 +189,12 @@ app.post("/api/users", async (req, res) => {
 
 app.post("/api/pets", requireAuth, async (req, res) => {
   const { name, age, breed, gender, ownerId, image } = req.body;
+  const parsedAge = parseInt(age, 10);
+  if (isNaN(parsedAge)) {
+    return res.status(400).json({ error: "Invalid age value" });
+  }
   const pet = await prisma.pet.create({
-    data: { name, age, breed, gender, ownerId, image },
+    data: { name, age: parsedAge, breed, gender, ownerId, image },
   });
   res.status(201).json(pet);
 });

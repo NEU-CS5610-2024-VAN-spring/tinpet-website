@@ -9,7 +9,7 @@ import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { AuthTokenProvider } from "./AuthTokenContext";
 import { PostLoginRedirect } from "./components/PostLoginRedirect";
 
-const requestedScopes = ["profile", "email"];
+const requestedScopes = ["openid", "profile", "email"];
 
 function RequireAuth({ children }) {
   const { isAuthenticated, isLoading } = useAuth0();
