@@ -4,7 +4,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 function ProfilePage() {
   const [user, setUser] = useState(null);
   const [pets, setPets] = useState([]);
-  const [profilePic, setProfilePic] = useState("");
   const { user: auth0User, getAccessTokenSilently } = useAuth0();
   const [newPet, setNewPet] = useState({
     name: "",
@@ -18,9 +17,7 @@ function ProfilePage() {
     const fetchUserAndPets = async () => {
       try {
         const token = await getAccessTokenSilently();
-
         const auth0UserId = auth0User.sub;
-        
 
         let response = await fetch("http://localhost:8000/api/users", {
           method: "POST",
@@ -143,7 +140,13 @@ function ProfilePage() {
       const userData = await response.json();
       const ownerId = userData.id;
 
-      const petData = { ...newPet, ownerId };
+      const petData = {
+        ...newPet,
+        ownerId,
+        image:
+          newPet.image ||
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s",
+      };
       const petResponse = await fetch("http://localhost:8000/api/pets", {
         method: "POST",
         headers: {
@@ -164,14 +167,15 @@ function ProfilePage() {
       console.error("Error adding pet:", error);
     }
   };
-
   const handleAddPetFormChange = (event) => {
     const { name, value, files } = event.target;
 
-    if (name === "image" && files && files[0]) {
+    if (name === "imageUrl") {
+      setNewPet({ ...newPet, imageUrl: value });
+    } else if (name === "imageFile" && files && files[0]) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewPet({ ...newPet, [name]: reader.result });
+        setNewPet({ ...newPet, imageFile: files[0] });
       };
       reader.readAsDataURL(files[0]);
     } else {
@@ -218,15 +222,15 @@ function ProfilePage() {
       </select>
       <input
         type="text"
-        name="image"
+        name="imageUrl"
         placeholder="Image URL"
-        value={newPet.image}
+        value={newPet.imageUrl}
         onChange={handleAddPetFormChange}
         className="border p-1 mr-2"
       />
       <input
         type="file"
-        name="image"
+        name="imageFile"
         onChange={handleAddPetFormChange}
         className="border p-1 mr-2"
       />
@@ -239,8 +243,6 @@ function ProfilePage() {
     </div>
   );
 
-  
-
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -252,7 +254,10 @@ function ProfilePage() {
         <div className="flex items-center space-x-6 mb-4">
           <img
             className="h-24 w-24 rounded-full object-cover"
-            src={user.profilePic || "default_avatar_url"}
+            src={
+              user.profilePic ||
+              "https://www.kindpng.com/picc/m/24-248253_user-profile-default-image-png-clipart-png-download.png"
+            }
             alt="Profile"
           />
           <div>
@@ -295,13 +300,30 @@ function ProfilePage() {
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
+                    <input
+                      type="text"
+                      name="imageUrl"
+                      placeholder="Image URL"
+                      value={newPet.imageUrl}
+                      onChange={handleAddPetFormChange}
+                      className="border p-1 mr-2"
+                    />
+                    <input
+                      type="file"
+                      name="imageFile"
+                      onChange={handleAddPetFormChange}
+                      className="border p-1 mr-2"
+                    />
                     <button onClick={() => handleSaveEdit(pet)}>Save</button>
                   </div>
                 ) : (
                   <div>
                     <img
                       className="h-16 w-16 rounded-full object-cover"
-                      src={pet.image || "default_pet_image_url"}
+                      src={
+                        pet.image ||
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s"
+                      }
                       alt={pet.name}
                     />
                     <p>{pet.name}</p>

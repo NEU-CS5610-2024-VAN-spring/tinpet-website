@@ -5,6 +5,7 @@ import pkg from "@prisma/client";
 import morgan from "morgan";
 import cors from "cors";
 import { auth } from "express-oauth2-jwt-bearer";
+import multer from "multer";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -14,9 +15,21 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/uploads", express.static("uploads"));
 
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // test route
 app.get("/ping", (req, res) => {
@@ -197,6 +210,11 @@ app.post("/api/pets", requireAuth, async (req, res) => {
     data: { name, age: parsedAge, breed, gender, ownerId, image },
   });
   res.status(201).json(pet);
+});
+
+app.post("/api/upload", upload.single("image"), (req, res) => {
+  const imageUrl = "/uploads/" + req.file.filename;
+  res.json({ imageUrl });
 });
 
 app.post("/api/matches", requireAuth, async (req, res) => {
