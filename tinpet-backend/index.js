@@ -6,16 +6,19 @@ import morgan from "morgan";
 import cors from "cors";
 import { auth } from "express-oauth2-jwt-bearer";
 import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
-app.use(express.json({ limit: "10mb" }));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 8000;
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
@@ -200,17 +203,34 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/pets", requireAuth, async (req, res) => {
-  const { name, age, breed, gender, ownerId, image } = req.body;
-  const parsedAge = parseInt(age, 10);
-  if (isNaN(parsedAge)) {
-    return res.status(400).json({ error: "Invalid age value" });
-  }
-  const pet = await prisma.pet.create({
-    data: { name, age: parsedAge, breed, gender, ownerId, image },
+app.post("/api/pets", [requireAuth, upload.single("image")], async (req, res) => {
+    const { name, age, breed, gender, ownerId, imageUrl } = req.body;
+    const parsedAge = parseInt(age, 10);
+    if (isNaN(parsedAge)) {
+      return res.status(400).json({ error: "Invalid age value" });
+    }
+  
+    // Use the uploaded file path if available; otherwise, use the imageUrl from the body
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
+  
+    try {
+      const pet = await prisma.pet.create({
+        data: {
+          name,
+          age: parsedAge,
+          breed,
+          gender,
+          ownerId: parseInt(ownerId, 10),
+          image: imagePath,
+        },
+      });
+      res.status(201).json(pet);
+    } catch (error) {
+      console.error("Failed to create pet", error);
+      res.status(500).json({ error: "Failed to create pet" });
+    }
   });
-  res.status(201).json(pet);
-});
+  
 
 app.post("/api/upload", upload.single("image"), (req, res) => {
   const imageUrl = "/uploads/" + req.file.filename;
@@ -225,21 +245,33 @@ app.post("/api/matches", requireAuth, async (req, res) => {
   res.status(201).json(match);
 });
 
-app.put("/api/pets/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
-  const { name, age, breed, gender, image } = req.body;
-
-  try {
-    const pet = await prisma.pet.update({
-      where: { id: parseInt(id, 10) },
-      data: { name, age, breed, gender, image },
-    });
-    res.json(pet);
-  } catch (error) {
-    console.error("Error updating pet:", error);
-    res.status(500).json({ error: "Failed to update pet" });
-  }
-});
+app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res) => {
+    const { id } = req.params;
+    const { name, age, breed, gender, imageUrl } = req.body;
+    const parsedAge = parseInt(age, 10);
+    if (isNaN(parsedAge)) {
+      return res.status(400).json({ error: "Invalid age value" });
+    }
+  
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
+  
+    try {
+      const pet = await prisma.pet.update({
+        where: { id: parseInt(id, 10) },
+        data: {
+          name,
+          age: parsedAge,
+          breed,
+          gender,
+          image: imagePath, // Update the image path only if necessary
+        },
+      });
+      res.json(pet);
+    } catch (error) {
+      console.error(`Error updating pet with ID ${id}:`, error);
+      res.status(500).json({ error: "Failed to update pet" });
+    }
+  });
 
 app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;

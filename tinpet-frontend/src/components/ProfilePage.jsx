@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function ProfilePage() {
   const [user, setUser] = useState(null);
   const [pets, setPets] = useState([]);
   const { user: auth0User, getAccessTokenSilently } = useAuth0();
+  const fileInputRef = useRef(null);
   const [newPet, setNewPet] = useState({
     name: "",
     age: 0,
     breed: "",
     gender: "",
-    image: "",
+    imageUrl: "", // Separate image URL for adding a new pet
+    imageFile: null, // Separate image file for adding a new pet
   });
 
   useEffect(() => {
     const fetchUserAndPets = async () => {
       try {
         const token = await getAccessTokenSilently();
+        if (!auth0User) {
+          return;
+        }
         const auth0UserId = auth0User.sub;
 
         let response = await fetch("http://localhost:8000/api/users", {
@@ -66,24 +71,28 @@ function ProfilePage() {
   const handleSaveEdit = async (pet) => {
     try {
       const token = await getAccessTokenSilently();
+      const formData = new FormData();
+      formData.append("name", pet.name);
+      formData.append("age", pet.age);
+      formData.append("breed", pet.breed);
+      formData.append("gender", pet.gender);
+      if (pet.imageFile) {
+        formData.append("image", pet.imageFile);
+      } else {
+        formData.append("imageUrl", pet.imageUrl); // Add imageUrl to FormData for online images
+      }
+
       const response = await fetch(`http://localhost:8000/api/pets/${pet.id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(pet),
+        body: formData,
       });
 
       if (response.ok) {
-        setPets(
-          pets.map((p) => {
-            if (p.id === pet.id) {
-              return { ...pet, isEditing: false };
-            }
-            return p;
-          })
-        );
+        const updatedPet = await response.json();
+        setPets(pets.map((p) => (p.id === updatedPet.id ? updatedPet : p)));
       } else {
         throw new Error("Failed to update pet");
       }
@@ -113,13 +122,27 @@ function ProfilePage() {
   };
 
   const handleChange = (id, event) => {
-    const { name, value } = event.target;
+    const { name, value, files } = event.target;
+
     setPets(
-      pets.map((pet) => {
-        if (pet.id === id) {
-          return { ...pet, [name]: value };
+      pets.map((existingPet) => {
+        if (existingPet.id === id) {
+          let updatedPet = { ...existingPet, [name]: value };
+
+          if (name === "imageFile" && files && files.length > 0) {
+            updatedPet.imageFile = files[0];
+            updatedPet.imageUrl = "";
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
+          } else if (name === "imageUrl") {
+            updatedPet.imageUrl = value;
+            updatedPet.imageFile = null;
+          }
+
+          return updatedPet;
         }
-        return pet;
+        return existingPet;
       })
     );
   };
@@ -127,39 +150,37 @@ function ProfilePage() {
   const handleAddPet = async () => {
     const token = await getAccessTokenSilently();
     try {
-      const response = await fetch("http://localhost:8000/api/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user data");
+      const formData = new FormData();
+      formData.append("name", newPet.name);
+      formData.append("age", newPet.age);
+      formData.append("breed", newPet.breed);
+      formData.append("gender", newPet.gender);
+      if (newPet.imageFile) {
+        formData.append("image", newPet.imageFile);
+      } else {
+        formData.append("imageUrl", newPet.imageUrl);
       }
+      formData.append("ownerId", user.id);
 
-      const userData = await response.json();
-      const ownerId = userData.id;
-
-      const petData = {
-        ...newPet,
-        ownerId,
-        image:
-          newPet.image ||
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s",
-      };
-      const petResponse = await fetch("http://localhost:8000/api/pets", {
+      const response = await fetch("http://localhost:8000/api/pets", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(petData),
+        body: formData,
       });
 
-      if (petResponse.ok) {
-        const addedPet = await petResponse.json();
+      if (response.ok) {
+        const addedPet = await response.json();
         setPets([...pets, addedPet]);
-        setNewPet({ name: "", age: 0, breed: "", gender: "", image: "" });
+        setNewPet({
+          name: "",
+          age: 0,
+          breed: "",
+          gender: "",
+          imageUrl: "",
+          imageFile: null,
+        });
       } else {
         throw new Error("Failed to add pet");
       }
@@ -167,22 +188,37 @@ function ProfilePage() {
       console.error("Error adding pet:", error);
     }
   };
+
   const handleAddPetFormChange = (event) => {
     const { name, value, files } = event.target;
+    console.log(name, value);
 
-    if (name === "imageUrl") {
-      setNewPet({ ...newPet, imageUrl: value });
-    } else if (name === "imageFile" && files && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPet({ ...newPet, imageFile: files[0] });
-      };
-      reader.readAsDataURL(files[0]);
-    } else {
-      setNewPet({ ...newPet, [name]: value });
+    // When a file is selected
+    if (name === "imageFile" && files) {
+      setNewPet((prevNewPet) => ({
+        ...prevNewPet,
+        imageFile: files[0], // Update the file
+        imageUrl: "", // Clear the imageUrl
+      }));
+    }
+    // When a URL is provided
+    else if (name === "imageUrl") {
+      setNewPet((prevNewPet) => ({
+        ...prevNewPet,
+        imageUrl: value, // Update the imageUrl
+        imageFile: null, // Clear the file
+      }));
+    }
+    // For all other inputs
+    else {
+      setNewPet((prevNewPet) => ({
+        ...prevNewPet,
+        [name]: value, // Only update the changed field
+      }));
     }
   };
 
+  // This is the form for adding a new pet
   const addPetForm = (
     <div className="my-4">
       <h3 className="text-lg font-semibold mb-2">Add New Pet</h3>
@@ -232,6 +268,7 @@ function ProfilePage() {
         type="file"
         name="imageFile"
         onChange={handleAddPetFormChange}
+        ref={fileInputRef}
         className="border p-1 mr-2"
       />
       <button
@@ -304,14 +341,14 @@ function ProfilePage() {
                       type="text"
                       name="imageUrl"
                       placeholder="Image URL"
-                      value={newPet.imageUrl}
-                      onChange={handleAddPetFormChange}
+                      value={pet.imageUrl || ""}
+                      onChange={(e) => handleChange(pet.id, e)}
                       className="border p-1 mr-2"
                     />
                     <input
                       type="file"
                       name="imageFile"
-                      onChange={handleAddPetFormChange}
+                      onChange={(e) => handleChange(pet.id, e)}
                       className="border p-1 mr-2"
                     />
                     <button onClick={() => handleSaveEdit(pet)}>Save</button>
@@ -321,8 +358,11 @@ function ProfilePage() {
                     <img
                       className="h-16 w-16 rounded-full object-cover"
                       src={
-                        pet.image ||
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s"
+                        pet.image && !pet.image.startsWith("http")
+                          ? `http://localhost:8000${pet.image}`
+                          : pet.image ||
+                            pet.imageUrl ||
+                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s"
                       }
                       alt={pet.name}
                     />
