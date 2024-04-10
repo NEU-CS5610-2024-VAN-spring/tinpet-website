@@ -1,6 +1,6 @@
 import "tailwindcss/tailwind.css";
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function HomePage() {
@@ -44,7 +44,11 @@ function HomePage() {
           >
             <div className="w-full h-48 bg-yellow-100 flex justify-center items-center overflow-hidden">
               <img
-                src={pet.image}
+                src={
+                  pet.image && pet.image.startsWith("http")
+                    ? pet.image
+                    : `http://localhost:8000${pet.image}`
+                }
                 alt={pet.name}
                 className="object-cover w-full h-full rounded-lg"
                 style={{ objectPosition: "center 25%" }}
