@@ -76,10 +76,12 @@ function ProfilePage() {
       formData.append("age", pet.age);
       formData.append("breed", pet.breed);
       formData.append("gender", pet.gender);
+
+      // Append image data only if there's a new file or an explicitly set URL
       if (pet.imageFile) {
         formData.append("image", pet.imageFile);
-      } else {
-        formData.append("imageUrl", pet.imageUrl); // Add imageUrl to FormData for online images
+      } else if (pet.imageUrl) {
+        formData.append("imageUrl", pet.imageUrl); // Ensure imageUrl is only set if not empty
       }
 
       const response = await fetch(`http://localhost:8000/api/pets/${pet.id}`, {
@@ -92,7 +94,13 @@ function ProfilePage() {
 
       if (response.ok) {
         const updatedPet = await response.json();
-        setPets(pets.map((p) => (p.id === updatedPet.id ? updatedPet : p)));
+        setPets(
+          pets.map((p) =>
+            p.id === updatedPet.id
+              ? { ...p, ...updatedPet, isEditing: false }
+              : p
+          )
+        );
       } else {
         throw new Error("Failed to update pet");
       }
@@ -273,7 +281,7 @@ function ProfilePage() {
       />
       <button
         onClick={handleAddPet}
-        className="bg-blue-500 text-white p-1 rounded"
+        className="bg-blue-500 text-white p-1 rounded w-20"
       >
         Add Pet
       </button>
@@ -310,6 +318,18 @@ function ProfilePage() {
               <div key={pet.id} className="bg-gray-100 rounded-lg p-4">
                 {pet.isEditing ? (
                   <div>
+                    <img
+                      className="h-16 w-16 rounded-full object-cover mb-4"
+                      src={
+                        pet.imageUrl // Check if imageUrl input is not empty
+                          ? pet.imageUrl // Show new imageUrl if it's not empty
+                          : pet.image && !pet.image.startsWith("http")
+                          ? `http://localhost:8000${pet.image}`
+                          : pet.image ||
+                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s" // Fall back to the existing image or a default
+                      }
+                      alt={pet.name}
+                    />
                     <input
                       type="text"
                       name="name"
@@ -351,7 +371,18 @@ function ProfilePage() {
                       onChange={(e) => handleChange(pet.id, e)}
                       className="border p-1 mr-2"
                     />
-                    <button onClick={() => handleSaveEdit(pet)}>Save</button>
+                    <button
+                      onClick={() => handleSaveEdit(pet)}
+                      className="bg-green-500 text-white p-1 mr-2 rounded"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleDeletePet(pet.id)}
+                      className="bg-red-500 text-white p-1 rounded"
+                    >
+                      Delete
+                    </button>
                   </div>
                 ) : (
                   <div>
@@ -371,8 +402,16 @@ function ProfilePage() {
                       {pet.breed}, {pet.age} years old
                     </p>
                     <p>{pet.gender}</p>
-                    <button onClick={() => handleEditPet(pet)}>Edit</button>
-                    <button onClick={() => handleDeletePet(pet.id)}>
+                    <button
+                      onClick={() => handleEditPet(pet)}
+                      className="bg-green-500 text-white p-1 mr-2 rounded w-20"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeletePet(pet.id)}
+                      className="bg-red-500 text-white p-1 rounded w-20"
+                    >
                       Delete
                     </button>
                   </div>

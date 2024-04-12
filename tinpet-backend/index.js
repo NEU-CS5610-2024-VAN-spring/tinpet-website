@@ -279,37 +279,37 @@ app.post("/api/matches", requireAuth, async (req, res) => {
   }
 });
 
-app.put(
-  "/api/pets/:id",
-  [requireAuth, upload.single("image")],
-  async (req, res) => {
+app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res) => {
     const { id } = req.params;
     const { name, age, breed, gender, imageUrl } = req.body;
     const parsedAge = parseInt(age, 10);
-    if (isNaN(parsedAge)) {
-      return res.status(400).json({ error: "Invalid age value" });
-    }
-
     const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
-
+  
     try {
+      const updateData = {
+        name,
+        age: parsedAge,
+        breed,
+        gender,
+      };
+  
+      // Only update image path if new image is provided
+      if (req.file || imageUrl) {
+        updateData.image = imagePath;
+      }
+  
       const pet = await prisma.pet.update({
         where: { id: parseInt(id, 10) },
-        data: {
-          name,
-          age: parsedAge,
-          breed,
-          gender,
-          image: imagePath, // Update the image path only if necessary
-        },
+        data: updateData,
       });
+  
       res.json(pet);
     } catch (error) {
       console.error(`Error updating pet with ID ${id}:`, error);
       res.status(500).json({ error: "Failed to update pet" });
     }
-  }
-);
+  });
+  
 
 app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
