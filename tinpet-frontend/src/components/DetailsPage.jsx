@@ -5,7 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 function DetailsPage() {
   const { petId } = useParams();
   const [petDetails, setPetDetails] = useState(null);
-  const [allPets, setAllPets] = useState(null);
+  const [allPets, setAllPets] = useState([]);
   const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
@@ -25,7 +25,6 @@ function DetailsPage() {
         }
 
         const data = await response.json();
-
         if (petId) {
           setPetDetails(data);
         } else {
@@ -39,25 +38,24 @@ function DetailsPage() {
     fetchDetails();
   }, [petId, getAccessTokenSilently]);
 
-  if (!petId && allPets) {
+  function formatImageUrl(image) {
+    return image && !image.startsWith("http") ? `http://localhost:8000${image}` : image;
+  }
+
+  if (!petId && allPets.length) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allPets.map((pet) => (
-            <div
-              key={pet.id}
-              className="bg-white rounded-lg shadow overflow-hidden"
-            >
+            <div key={pet.id} className="bg-white rounded-lg shadow overflow-hidden">
               <img
-                src={pet.image}
+                src={formatImageUrl(pet.image)}
                 alt={pet.name}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h2 className="text-xl font-semibold text-gray-700">
-                  {pet.name}
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
                 <p className="text-gray-600">Breed: {pet.breed}</p>
                 <p className="text-gray-600">Age: {pet.age}</p>
                 <p className="text-gray-600">Gender: {pet.gender}</p>
@@ -74,7 +72,7 @@ function DetailsPage() {
           <div className="md:flex-shrink-0">
             <img
               className="h-48 w-full object-cover md:h-full md:w-48"
-              src={petDetails.image}
+              src={formatImageUrl(petDetails.image)}
               alt={petDetails.name}
             />
           </div>

@@ -26,6 +26,11 @@ function NavigationBar() {
             Profile
           </Link>
         </li>
+        <li>
+            <Link to="/matches" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">
+                Matches
+            </Link>
+        </li>
         {isAuthenticated ? (
           <li>
             <button

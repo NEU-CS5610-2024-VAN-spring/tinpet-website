@@ -98,7 +98,7 @@ function HomePage() {
       createMatch(selectedPetIdForMatch, petToMatch);
     }
   };
-  
+
   return (
     <div>
       <div className="grid grid-cols-4 gap-12 gap-y-24 mt-16">
@@ -116,7 +116,6 @@ function HomePage() {
                 }
                 alt={pet.name}
                 className="object-cover w-full h-full rounded-lg"
-                style={{ objectPosition: "center 25%" }}
               />
             </div>
             <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center transition-opacity duration-300">

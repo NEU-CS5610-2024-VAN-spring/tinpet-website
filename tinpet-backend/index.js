@@ -155,8 +155,18 @@ app.get("/api/my-pets", requireAuth, async (req, res) => {
 });
 
 app.get("/api/matches", requireAuth, async (req, res) => {
-  const matches = await prisma.match.findMany();
-  res.json(matches);
+  try {
+    const matches = await prisma.match.findMany({
+      include: {
+        pet1: true,
+        pet2: true,
+      },
+    });
+    res.json(matches);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+    res.status(500).send("Error fetching matches");
+  }
 });
 
 app.post("/verify-user", requireAuth, async (req, res) => {
@@ -203,16 +213,19 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/pets", [requireAuth, upload.single("image")], async (req, res) => {
+app.post(
+  "/api/pets",
+  [requireAuth, upload.single("image")],
+  async (req, res) => {
     const { name, age, breed, gender, ownerId, imageUrl } = req.body;
     const parsedAge = parseInt(age, 10);
     if (isNaN(parsedAge)) {
       return res.status(400).json({ error: "Invalid age value" });
     }
-  
+
     // Use the uploaded file path if available; otherwise, use the imageUrl from the body
     const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
-  
+
     try {
       const pet = await prisma.pet.create({
         data: {
@@ -229,8 +242,8 @@ app.post("/api/pets", [requireAuth, upload.single("image")], async (req, res) =>
       console.error("Failed to create pet", error);
       res.status(500).json({ error: "Failed to create pet" });
     }
-  });
-  
+  }
+);
 
 app.post("/api/upload", upload.single("image"), (req, res) => {
   const imageUrl = "/uploads/" + req.file.filename;
@@ -239,22 +252,46 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
 
 app.post("/api/matches", requireAuth, async (req, res) => {
   const { pet1Id, pet2Id } = req.body;
-  const match = await prisma.match.create({
-    data: { pet1Id, pet2Id },
+
+  const existingMatch = await prisma.match.findFirst({
+    where: {
+      OR: [
+        { pet1Id, pet2Id },
+        { pet1Id: pet2Id, pet2Id: pet1Id },
+      ],
+    },
   });
-  res.status(201).json(match);
+
+  if (existingMatch) {
+    return res
+      .status(409)
+      .json({ message: "A match between these pets already exists." });
+  }
+
+  try {
+    const match = await prisma.match.create({
+      data: { pet1Id, pet2Id },
+    });
+    res.status(201).json(match);
+  } catch (error) {
+    console.error("Failed to create match", error);
+    res.status(500).json({ error: "Failed to create match" });
+  }
 });
 
-app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res) => {
+app.put(
+  "/api/pets/:id",
+  [requireAuth, upload.single("image")],
+  async (req, res) => {
     const { id } = req.params;
     const { name, age, breed, gender, imageUrl } = req.body;
     const parsedAge = parseInt(age, 10);
     if (isNaN(parsedAge)) {
       return res.status(400).json({ error: "Invalid age value" });
     }
-  
+
     const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
-  
+
     try {
       const pet = await prisma.pet.update({
         where: { id: parseInt(id, 10) },
@@ -271,7 +308,8 @@ app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res)
       console.error(`Error updating pet with ID ${id}:`, error);
       res.status(500).json({ error: "Failed to update pet" });
     }
-  });
+  }
+);
 
 app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;

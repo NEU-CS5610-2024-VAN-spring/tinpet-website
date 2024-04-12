@@ -8,6 +8,7 @@ import DetailsPage from "./components/DetailsPage";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { AuthTokenProvider } from "./AuthTokenContext";
 import { PostLoginRedirect } from "./components/PostLoginRedirect";
+import MatchesPage from "./components/MatchesPage";
 
 const requestedScopes = ["openid", "profile", "email"];
 
@@ -59,6 +60,14 @@ function App() {
               element={
                 <RequireAuth>
                   <DetailsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/matches"
+              element={
+                <RequireAuth>
+                  <MatchesPage />
                 </RequireAuth>
               }
             />
