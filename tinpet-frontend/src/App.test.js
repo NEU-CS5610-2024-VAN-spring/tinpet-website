@@ -1,8 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
-});
+Object.defineProperty(window, 'crypto', {
+    value: {
+      subtle: {
+        encrypt: jest.fn(),
+        decrypt: jest.fn(),
+        // Add other required methods here
+      },
+      getRandomValues: jest.fn(),
+    },
+  });
+
+  test('renders the welcome message', () => {
+    render(<App />);
+    const linkElement = screen.getByText(/Welcome to Pet Matcher/i);
+    expect(linkElement).toBeInTheDocument();
+  });
