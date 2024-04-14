@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function NavigationBar() {
   const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
@@ -9,7 +9,10 @@ function NavigationBar() {
     <nav className="bg-gray-800 p-4">
       <ul className="flex justify-between items-center text-white">
         <li>
-          <Link to="/" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">
+          <Link
+            to="/"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+          >
             Home
           </Link>
         </li>
@@ -22,14 +25,28 @@ function NavigationBar() {
           </Link>
         </li>
         <li>
-          <Link to="/profile" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">
+          <Link
+            to="/profile"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+          >
             Profile
           </Link>
         </li>
         <li>
-            <Link to="/matches" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">
-                Matches
-            </Link>
+          <Link
+            to="/matches"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+          >
+            Matches
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/authdebugger"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+          >
+            AuthDebugger
+          </Link>
         </li>
         {isAuthenticated ? (
           <li>

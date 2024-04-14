@@ -5,6 +5,7 @@ import HomePage from "./components/HomePage";
 import ProfilePage from "./components/ProfilePage";
 import VerifyUser from "./components/VerifyUser";
 import DetailsPage from "./components/DetailsPage";
+import AuthDebugger from "./components/AuthDebugger";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { AuthTokenProvider } from "./AuthTokenContext";
 import { PostLoginRedirect } from "./components/PostLoginRedirect";
@@ -71,6 +72,11 @@ function App() {
                 </RequireAuth>
               }
             />
+            <Route path="/authdebugger" element={
+                <RequireAuth>
+                    <AuthDebugger />
+                </RequireAuth>
+                } />    
           </Routes>
           <PostLoginRedirect />
         </BrowserRouter>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import AnimalFacts from "./AnimalFacts";
 
 function HomePage() {
   const [pets, setPets] = useState([]);
@@ -100,7 +101,18 @@ function HomePage() {
   };
 
   return (
-    <div>
+    <div className="relative">
+      <div
+        className="flex justify-center items-center text-center text-6xl lg:text-8xl font-bold text-gray-600 py-4 bg-cover bg-center h-40" // Tailwind classes for centering and font size
+        style={{
+          backgroundImage:
+            "url('https://t3.ftcdn.net/jpg/00/84/55/66/360_F_84556601_W71hd1xmCxZUhsscyNlokY1an7Kqx6ZJ.jpg')",
+          height: "280px",
+          fontFamily: "Great Vibes",
+        }}
+      >
+        Welcome to Pet Matcher
+      </div>
       <div className="grid grid-cols-4 gap-12 gap-y-24 mt-16">
         {pets.map((pet) => (
           <div
@@ -158,6 +170,7 @@ function HomePage() {
           </button>
         </div>
       )}
+      <AnimalFacts />
     </div>
   );
 }
