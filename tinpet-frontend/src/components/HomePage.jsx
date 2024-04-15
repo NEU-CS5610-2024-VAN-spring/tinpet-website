@@ -24,7 +24,7 @@ function HomePage() {
       const response = await fetch("http://localhost:8000/api/pets/latest");
       const petsData = await response.json();
       setPets(petsData);
-      setFetchError(false); // Reset error state on successful fetch
+      setFetchError(false);
     } catch (error) {
       console.error("Failed to fetch pets:", error);
       setFetchError(true);

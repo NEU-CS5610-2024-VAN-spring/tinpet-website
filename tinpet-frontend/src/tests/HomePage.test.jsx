@@ -42,6 +42,8 @@ describe("HomePage Component", () => {
     });
   });
 
+  global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
+
   test("renders HomePage without crashing", () => {
     expect(screen.getByText("Dog")).toBeInTheDocument();
     expect(screen.getByText("Breed: Golden Retriever")).toBeInTheDocument();
