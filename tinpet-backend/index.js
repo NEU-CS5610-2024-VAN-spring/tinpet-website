@@ -138,21 +138,22 @@ app.get("/me", requireAuth, async (req, res) => {
 });
 
 app.get("/api/my-pets", requireAuth, async (req, res) => {
-  const auth0Id = req.auth.payload.sub;
-  try {
-    const user = await prisma.user.findUnique({
-      where: { auth0Id },
-      include: { pets: true },
-    });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const auth0Id = req.auth.payload.sub;
+    try {
+      const user = await prisma.user.findUnique({
+        where: { auth0Id },
+        include: { pets: true },
+      });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.status(200).json(user.pets);
+    } catch (error) {
+      console.error("Error fetching user's pets:", error);
+      res.status(500).json({ error: "Error fetching user's pets" });
     }
-    res.json(user.pets);
-  } catch (error) {
-    console.error("Error fetching user's pets:", error);
-    res.status(500).send("Error fetching user's pets");
-  }
-});
+  });
+  
 
 app.get("/api/matches", requireAuth, async (req, res) => {
   try {

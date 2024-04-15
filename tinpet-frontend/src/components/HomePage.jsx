@@ -5,6 +5,7 @@ import AnimalFacts from "./AnimalFacts";
 function HomePage() {
   const [pets, setPets] = useState([]);
   const [userPets, setUserPets] = useState([]);
+  const [fetchError, setFetchError] = useState(false);
   const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState(null);
   const [petToMatch, setPetToMatch] = useState(null);
   const [matchedPets, setMatchedPets] = useState(new Map());
@@ -19,20 +20,31 @@ function HomePage() {
   }, [isAuthenticated]);
 
   async function fetchPets() {
-    const response = await fetch("http://localhost:8000/api/pets/latest");
-    const petsData = await response.json();
-    setPets(petsData);
+    try {
+      const response = await fetch("http://localhost:8000/api/pets/latest");
+      const petsData = await response.json();
+      setPets(petsData);
+      setFetchError(false); // Reset error state on successful fetch
+    } catch (error) {
+      console.error("Failed to fetch pets:", error);
+      setFetchError(true);
+    }
   }
 
   async function fetchUserPets() {
-    const token = await getAccessTokenSilently();
-    const response = await fetch("http://localhost:8000/api/my-pets", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await response.json();
-    setUserPets(data);
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch("http://localhost:8000/api/my-pets", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setUserPets(data);
+    } catch (error) {
+      console.error("Failed to fetch user pets:", error);
+      setFetchError(true);
+    }
   }
 
   const handleMatchClick = (otherPetId) => {
@@ -102,6 +114,11 @@ function HomePage() {
 
   return (
     <div className="relative">
+      {fetchError && (
+        <div role="alert" className="text-red-500">
+          Failed to fetch data
+        </div>
+      )}
       <div
         className="flex justify-center items-center text-center text-6xl lg:text-8xl font-bold text-gray-600 py-4 bg-cover bg-center h-40" // Tailwind classes for centering and font size
         style={{
@@ -114,38 +131,42 @@ function HomePage() {
         Welcome to Pet Matcher
       </div>
       <div className="grid grid-cols-4 gap-12 gap-y-24 mt-16">
-        {pets.map((pet) => (
-          <div
-            key={pet.id}
-            className="relative group rounded-lg overflow-hidden shadow-lg transform transition duration-300 hover:scale-105"
-          >
-            <div className="w-full h-48 bg-yellow-100 flex justify-center items-center overflow-hidden">
-              <img
-                src={
-                  pet.image && pet.image.startsWith("http")
-                    ? pet.image
-                    : `http://localhost:8000${pet.image}`
-                }
-                alt={pet.name}
-                className="object-cover w-full h-full rounded-lg"
-              />
-            </div>
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center transition-opacity duration-300">
-              <div className="text-white text-center p-4">
-                <p className="font-bold">{pet.name}</p>
-                <p>Breed: {pet.breed}</p>
-                <p>Age: {pet.age}</p>
-                <p>Gender: {pet.gender}</p>
-                <button
-                  onClick={() => handleMatchClick(pet.id)}
-                  className="bg-orange-500 text-white p-2 hover:bg-blue-700 mt-2"
-                >
-                  Match!
-                </button>
+        {pets.length === 0 ? (
+          <div>No pets available</div>
+        ) : (
+          pets.map((pet) => (
+            <div
+              key={pet.id}
+              className="relative group rounded-lg overflow-hidden shadow-lg transform transition duration-300 hover:scale-105"
+            >
+              <div className="w-full h-48 bg-yellow-100 flex justify-center items-center overflow-hidden">
+                <img
+                  src={
+                    pet.image && pet.image.startsWith("http")
+                      ? pet.image
+                      : `http://localhost:8000${pet.image}`
+                  }
+                  alt={pet.name}
+                  className="object-cover w-full h-full rounded-lg"
+                />
+              </div>
+              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center transition-opacity duration-300">
+                <div className="text-white text-center p-4">
+                  <p className="font-bold">{pet.name}</p>
+                  <p>Breed: {pet.breed}</p>
+                  <p>Age: {pet.age}</p>
+                  <p>Gender: {pet.gender}</p>
+                  <button
+                    onClick={() => handleMatchClick(pet.id)}
+                    className="bg-orange-500 text-white p-2 hover:bg-blue-700 mt-2"
+                  >
+                    Match!
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
       {userPets.length > 1 && petToMatch && (
         <div className="mt-4">

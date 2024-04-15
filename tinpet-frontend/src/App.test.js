@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
 Object.defineProperty(window, 'crypto', {
@@ -6,14 +6,13 @@ Object.defineProperty(window, 'crypto', {
       subtle: {
         encrypt: jest.fn(),
         decrypt: jest.fn(),
-        // Add other required methods here
       },
       getRandomValues: jest.fn(),
     },
-  });
+});
 
-  test('renders the welcome message', () => {
-    render(<App />);
-    const linkElement = screen.getByText(/Welcome to Pet Matcher/i);
-    expect(linkElement).toBeInTheDocument();
-  });
+test('renders the welcome message', async () => {
+  render(<App />);
+  const linkElement = await screen.findByText(/Welcome to Pet Matcher/i);
+  expect(linkElement).toBeInTheDocument();
+});
