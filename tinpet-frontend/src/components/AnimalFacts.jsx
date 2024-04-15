@@ -45,6 +45,12 @@ function AnimalFacts() {
   const [facts, setFacts] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      fetchAnimalFacts();
+    }
+  };
+
   const fetchAnimalFacts = async () => {
     setIsLoading(true);
     const url = `https://animals-by-api-ninjas.p.rapidapi.com/v1/animals?name=${animal}`;
@@ -77,6 +83,7 @@ function AnimalFacts() {
         type="text"
         value={animal}
         onChange={(e) => setAnimal(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Enter an animal name"
         className="border border-gray-300 rounded-md p-2 w-full"
       />
