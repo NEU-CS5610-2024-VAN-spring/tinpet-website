@@ -6,6 +6,9 @@ function DetailsPage() {
   const { petId } = useParams();
   const [petDetails, setPetDetails] = useState(null);
   const [allPets, setAllPets] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchGender, setSearchGender] = useState("");
+  const [filteredPets, setFilteredPets] = useState([]);
   const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
@@ -13,49 +16,74 @@ function DetailsPage() {
       try {
         const token = await getAccessTokenSilently();
         let url = `http://localhost:8000/api/pets${petId ? `/${petId}` : ""}`;
-
         const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
+        if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
-        if (petId) {
-          setPetDetails(data);
-        } else {
-          setAllPets(data);
-        }
+        if (petId) setPetDetails(data);
+        else setAllPets(data);
       } catch (error) {
         console.error("Error:", error);
       }
     }
-
     fetchDetails();
   }, [petId, getAccessTokenSilently]);
 
+  useEffect(() => {
+    setFilteredPets(
+      allPets.filter(
+        (pet) =>
+          (pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            pet.breed.toLowerCase().includes(searchTerm.toLowerCase())) &&
+          (searchGender
+            ? pet.gender.toLowerCase() === searchGender.toLowerCase()
+            : true)
+      )
+    );
+  }, [searchTerm, searchGender, allPets]);
+
   function formatImageUrl(image) {
-    return image && !image.startsWith("http") ? `http://localhost:8000${image}` : image;
+    return image && !image.startsWith("http")
+      ? `http://localhost:8000${image}`
+      : image;
   }
 
   if (!petId && allPets.length) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
+        <input
+          type="text"
+          placeholder="Search by name or breed..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4 p-2 border border-gray-300 rounded"
+        />
+        <select
+          value={searchGender}
+          onChange={(e) => setSearchGender(e.target.value)}
+          className="mb-4 p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Genders</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allPets.map((pet) => (
-            <div key={pet.id} className="bg-white rounded-lg shadow overflow-hidden">
+          {filteredPets.map((pet) => (
+            <div
+              key={pet.id}
+              className="bg-white rounded-lg shadow overflow-hidden"
+            >
               <img
                 src={formatImageUrl(pet.image)}
                 alt={pet.name}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
+                <h2 className="text-xl font-semibold text-gray-700">
+                  {pet.name}
+                </h2>
                 <p className="text-gray-600">Breed: {pet.breed}</p>
                 <p className="text-gray-600">Age: {pet.age}</p>
                 <p className="text-gray-600">Gender: {pet.gender}</p>
