@@ -199,7 +199,6 @@ function ProfilePage() {
 
   const handleAddPetFormChange = (event) => {
     const { name, value, files } = event.target;
-    console.log(name, value);
 
     // When a file is selected
     if (name === "imageFile" && files) {

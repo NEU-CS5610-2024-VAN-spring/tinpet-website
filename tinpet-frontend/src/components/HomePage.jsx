@@ -5,7 +5,6 @@ import AnimalFacts from "./AnimalFacts";
 function HomePage() {
   const [pets, setPets] = useState([]);
   const [userPets, setUserPets] = useState([]);
-  const [fetchError, setFetchError] = useState(false);
   const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState(null);
   const [petToMatch, setPetToMatch] = useState(null);
   const [matchedPets, setMatchedPets] = useState(new Map());
@@ -24,10 +23,8 @@ function HomePage() {
       const response = await fetch("http://localhost:8000/api/pets/latest");
       const petsData = await response.json();
       setPets(petsData);
-      setFetchError(false);
     } catch (error) {
       console.error("Failed to fetch pets:", error);
-      setFetchError(true);
     }
   }
 
@@ -43,7 +40,6 @@ function HomePage() {
       setUserPets(data);
     } catch (error) {
       console.error("Failed to fetch user pets:", error);
-      setFetchError(true);
     }
   }
 
@@ -114,11 +110,6 @@ function HomePage() {
 
   return (
     <div className="relative">
-      {fetchError && (
-        <div role="alert" className="text-red-500">
-          Failed to fetch data
-        </div>
-      )}
       <div
         className="flex justify-center items-center text-center text-6xl lg:text-8xl font-bold text-gray-600 py-4 bg-cover bg-center h-40" // Tailwind classes for centering and font size
         style={{

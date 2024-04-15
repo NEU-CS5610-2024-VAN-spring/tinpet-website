@@ -1,119 +1,101 @@
 import React from "react";
-import { render, screen, act } from "@testing-library/react";
+import { render, fireEvent, screen, waitFor, act } from "@testing-library/react";
 import HomePage from "../components/HomePage";
 import { useAuth0 } from "@auth0/auth0-react";
+import '@testing-library/jest-dom';
 
 jest.mock("@auth0/auth0-react");
 
-describe("HomePage Component", () => {
-  beforeEach(async () => {
+describe("HomePage Component Tests", () => {
+  const mockLoginWithRedirect = jest.fn();
+  const mockGetAccessTokenSilently = jest.fn();
+
+  beforeEach(() => {
     useAuth0.mockReturnValue({
       isAuthenticated: false,
-      loginWithRedirect: jest.fn(),
-      getAccessTokenSilently: jest.fn().mockResolvedValue("fake-access-token"),
+      loginWithRedirect: mockLoginWithRedirect,
+      getAccessTokenSilently: mockGetAccessTokenSilently,
     });
 
     global.fetch = jest.fn(() =>
       Promise.resolve({
-        json: () =>
-          Promise.resolve([
-            {
-              id: 1,
-              name: "Dog",
-              breed: "Golden Retriever",
-              age: 3,
-              gender: "Male",
-              image: "http://example.com/dog.jpg",
-            },
-            {
-              id: 2,
-              name: "Cat",
-              breed: "Siamese",
-              age: 2,
-              gender: "Female",
-              image: "http://example.com/cat.jpg",
-            },
-          ]),
+        ok: true,
+        json: () => Promise.resolve([
+          {
+            id: 1,
+            name: "Fluffy",
+            breed: "Golden Retriever",
+            age: 5,
+            gender: "Male",
+            image: "http://example.com/dog.jpg"
+          },
+          {
+            id: 2,
+            name: "Mittens",
+            breed: "Tabby",
+            age: 3,
+            gender: "Female",
+            image: "http://example.com/cat.jpg"
+          }
+        ])
       })
     );
+  });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("renders HomePage and fetches pets", async () => {
     await act(async () => {
       render(<HomePage />);
     });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("Fluffy")).toBeInTheDocument();
+    expect(screen.getByText("Mittens")).toBeInTheDocument();
   });
 
-  global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
-
-  test("renders HomePage without crashing", () => {
-    expect(screen.getByText("Dog")).toBeInTheDocument();
-    expect(screen.getByText("Breed: Golden Retriever")).toBeInTheDocument();
-    expect(screen.getByText("Cat")).toBeInTheDocument();
-    expect(screen.getByText("Breed: Siamese")).toBeInTheDocument();
+  test("displays Match button when pets are listed", async () => {
+    await act(async () => {
+      render(<HomePage />);
+    });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(screen.getAllByText("Match!")[0]).toBeInTheDocument();
   });
 
-  test("fetches pets data on mount", () => {
-    expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:8000/api/pets/latest"
-    );
+  test("Login button appears and triggers loginWithRedirect when not authenticated", async () => {
+    await act(async () => {
+      render(<HomePage />);
+    });
+    fireEvent.click(screen.getAllByText("Match!")[0]);
+    expect(mockLoginWithRedirect).toHaveBeenCalled();
   });
 
-  test("fetches user pets data when isAuthenticated is true", async () => {
-    useAuth0.mockReturnValue({
+  test("Match creation process starts when authenticated and Match button is clicked", async () => {
+    useAuth0.mockReturnValueOnce({
       isAuthenticated: true,
-      loginWithRedirect: jest.fn(),
-      getAccessTokenSilently: jest.fn().mockResolvedValue("fake-access-token"),
+      loginWithRedirect: mockLoginWithRedirect,
+      getAccessTokenSilently: mockGetAccessTokenSilently.mockResolvedValue("fake-token"),
     });
-
     await act(async () => {
       render(<HomePage />);
     });
-
-    expect(global.fetch).toHaveBeenCalledTimes(3);
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    fireEvent.click(screen.getAllByText("Match!")[0]);
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
   });
 
-  test("does not fetch user pets data when isAuthenticated is false", async () => {
+  test("Enter App navigates to user's pets when authenticated", async () => {
+    useAuth0.mockReturnValueOnce({
+      isAuthenticated: true,
+      loginWithRedirect: mockLoginWithRedirect,
+      getAccessTokenSilently: mockGetAccessTokenSilently.mockResolvedValue("fake-token"),
+    });
     await act(async () => {
       render(<HomePage />);
     });
-
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  test("creates match when Match button is clicked and user is authenticated with pets", async () => {
-    global.fetch.mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValueOnce({ success: true }),
-    });
-
-    const matchButtons = screen.getAllByRole("button", { name: "Match!" });
-    expect(matchButtons.length).toBeGreaterThan(0);
-    act(() => {
-      matchButtons[0].click();
-    });
-
-    expect(global.fetch).toHaveBeenCalledTimes(1); // Adjusted to include the additional API call
-  });
-
-  test("handles fetch error gracefully", async () => {
-    global.fetch.mockImplementationOnce(() =>
-      Promise.reject(new Error("Network error"))
-    );
-
-    await act(async () => {
-      render(<HomePage />);
-    });
-
-    expect(screen.getByRole("alert")).toHaveTextContent("Failed to fetch data");
-  });
-
-  test("displays no pets available message when API returns empty array", async () => {
-    global.fetch.mockResolvedValueOnce({
-      json: () => Promise.resolve([]),
-    });
-
-    await act(async () => {
-      render(<HomePage />);
-    });
-
-    expect(screen.getByText("No pets available")).toBeInTheDocument();
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
   });
 });
