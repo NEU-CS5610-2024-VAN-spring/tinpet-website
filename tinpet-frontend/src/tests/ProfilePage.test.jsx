@@ -63,6 +63,21 @@ describe("ProfilePage Component", () => {
             }),
         });
       }
+      if (url.includes("/api/pets") && options.method === "POST") {
+        // Simulate a successful POST request for adding a pet
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              id: 2,
+              name: options.body.get("name"),
+              age: options.body.get("age"),
+              breed: options.body.get("breed"),
+              gender: options.body.get("gender"),
+              imageUrl: options.body.get("imageUrl"),
+            }),
+        });
+      }
       return Promise.reject(new Error("Endpoint not mocked"));
     });
   });

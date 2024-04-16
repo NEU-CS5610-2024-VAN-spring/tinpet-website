@@ -19,28 +19,38 @@ function DetailsPage() {
         const response = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error("Failed to fetch data");
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch data: ${response.status} ${response.statusText}`
+          );
+        }
+
         const data = await response.json();
-        if (petId) setPetDetails(data);
-        else setAllPets(data);
+        console.log("Data received from API:", data);
+
+        if (petId) {
+          setPetDetails(data);
+        } else {
+          setAllPets(data);
+        }
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error fetching data:", error.message);
       }
     }
     fetchDetails();
   }, [petId, getAccessTokenSilently]);
 
   useEffect(() => {
-    setFilteredPets(
-      allPets.filter(
+    if (Array.isArray(allPets)) {
+      const filtered = allPets.filter(
         (pet) =>
           (pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pet.breed.toLowerCase().includes(searchTerm.toLowerCase())) &&
-          (searchGender
-            ? pet.gender.toLowerCase() === searchGender.toLowerCase()
-            : true)
-      )
-    );
+          (!searchGender ||
+            pet.gender.toLowerCase() === searchGender.toLowerCase())
+      );
+      setFilteredPets(filtered);
+    }
   }, [searchTerm, searchGender, allPets]);
 
   function formatImageUrl(image) {
