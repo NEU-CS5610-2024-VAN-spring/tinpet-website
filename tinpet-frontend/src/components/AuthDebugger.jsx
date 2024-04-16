@@ -6,14 +6,14 @@ export default function AuthDebugger() {
   const { accessToken } = useAuthToken();
 
   return (
-    <div>
-      <div>
-        <p>Access Token:</p>
-        <pre>{JSON.stringify(accessToken, null, 2)}</pre>
+    <div className="flex flex-col p-4 space-y-4 bg-gray-100 dark:bg-gray-800">
+      <div className="bg-white dark:bg-gray-700 shadow-md rounded-lg p-4">
+        <p className="font-semibold text-lg">Access Token:</p>
+        <pre className="text-sm overflow-auto">{JSON.stringify(accessToken, null, 2)}</pre>
       </div>
-      <div>
-        <p>User Info</p>
-        <pre>{JSON.stringify(user, null, 2)}</pre>
+      <div className="bg-white dark:bg-gray-700 shadow-md rounded-lg p-4">
+        <p className="font-semibold text-lg">User Info:</p>
+        <pre className="text-sm overflow-auto">{JSON.stringify(user, null, 2)}</pre>
       </div>
     </div>
   );
