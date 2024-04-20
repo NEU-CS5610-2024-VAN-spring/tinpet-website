@@ -81,6 +81,7 @@ function AnimalFacts() {
     <div className="mt-4">
       <input
         type="text"
+        id="search-input"
         value={animal}
         onChange={(e) => setAnimal(e.target.value)}
         onKeyDown={handleKeyDown}

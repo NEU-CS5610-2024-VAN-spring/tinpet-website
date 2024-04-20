@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import AnimalFacts from "./AnimalFacts";
 
@@ -11,24 +11,7 @@ function HomePage() {
   const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } =
     useAuth0();
 
-  useEffect(() => {
-    fetchPets();
-    if (isAuthenticated) {
-      fetchUserPets();
-    }
-  }, [isAuthenticated]);
-
-  async function fetchPets() {
-    try {
-      const response = await fetch("http://localhost:8000/api/pets/latest");
-      const petsData = await response.json();
-      setPets(petsData);
-    } catch (error) {
-      console.error("Failed to fetch pets:", error);
-    }
-  }
-
-  async function fetchUserPets() {
+  const fetchUserPets = useCallback(async () => {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch("http://localhost:8000/api/my-pets", {
@@ -41,7 +24,24 @@ function HomePage() {
     } catch (error) {
       console.error("Failed to fetch user pets:", error);
     }
-  }
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/pets/latest");
+        const petsData = await response.json();
+        setPets(petsData);
+      } catch (error) {
+        console.error("Failed to fetch pets:", error);
+      }
+    };
+
+    fetchPets();
+    if (isAuthenticated) {
+      fetchUserPets();
+    }
+  }, [isAuthenticated, fetchUserPets]);
 
   const handleMatchClick = (otherPetId) => {
     if (!isAuthenticated) {
