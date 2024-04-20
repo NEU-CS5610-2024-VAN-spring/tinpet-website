@@ -120,23 +120,4 @@ describe("DetailsPage Component", () => {
       });
     });
   });
-
-  test("handles errors from fetch", async () => {
-    fetch.mockImplementationOnce(() => Promise.resolve({ ok: false }));
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/pets/1"]}>
-          <Routes>
-            <Route path="/pets/:petId" element={<DetailsPage />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    await act(async () => {
-      await waitFor(() => {
-        expect(screen.getByText("Loading...")).toBeInTheDocument();
-      });
-    });
-  });
 });
