@@ -13,7 +13,7 @@ export function VerifyUser() {
       if (accessToken) {
         try {
           const response = await fetch(
-            "http://localhost:8000/api/verify-user",
+            "https://assignment-03-77.onrender.com/api/verify-user",
             {
               method: "POST",
               headers: {

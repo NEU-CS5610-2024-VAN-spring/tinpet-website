@@ -15,7 +15,9 @@ function DetailsPage() {
     async function fetchDetails() {
       try {
         const token = await getAccessTokenSilently();
-        let url = `http://localhost:8000/api/pets${petId ? `/${petId}` : ""}`;
+        let url = `https://assignment-03-77.onrender.com/api/pets${
+          petId ? `/${petId}` : ""
+        }`;
         const response = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -55,7 +57,7 @@ function DetailsPage() {
 
   function formatImageUrl(image) {
     return image && !image.startsWith("http")
-      ? `http://localhost:8000${image}`
+      ? `https://assignment-03-77.onrender.com${image}`
       : image;
   }
 

@@ -24,28 +24,34 @@ function ProfilePage() {
         }
         const auth0UserId = auth0User.sub;
 
-        let response = await fetch("http://localhost:8000/api/users", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            auth0Id: auth0UserId,
-            email: auth0User.email,
-            name: auth0User.name,
-          }),
-        });
+        let response = await fetch(
+          "https://assignment-03-77.onrender.com/api/users",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              auth0Id: auth0UserId,
+              email: auth0User.email,
+              name: auth0User.name,
+            }),
+          }
+        );
 
         const userData = await response.json();
 
         setUser(userData);
 
-        response = await fetch("http://localhost:8000/api/my-pets", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        response = await fetch(
+          "https://assignment-03-77.onrender.com/api/my-pets",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const petsData = await response.json();
         setPets(petsData);
@@ -84,13 +90,16 @@ function ProfilePage() {
         formData.append("imageUrl", pet.imageUrl); // Ensure imageUrl is only set if not empty
       }
 
-      const response = await fetch(`http://localhost:8000/api/pets/${pet.id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `https://assignment-03-77.onrender.com/api/pets/${pet.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const updatedPet = await response.json();
@@ -112,12 +121,15 @@ function ProfilePage() {
   const handleDeletePet = async (petId) => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch(`http://localhost:8000/api/pets/${petId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `https://assignment-03-77.onrender.com/api/pets/${petId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         setPets(pets.filter((pet) => pet.id !== petId));
@@ -170,13 +182,16 @@ function ProfilePage() {
       }
       formData.append("ownerId", user.id);
 
-      const response = await fetch("http://localhost:8000/api/pets", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        "https://assignment-03-77.onrender.com/api/pets",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const addedPet = await response.json();
@@ -323,7 +338,7 @@ function ProfilePage() {
                         pet.imageUrl // Check if imageUrl input is not empty
                           ? pet.imageUrl // Show new imageUrl if it's not empty
                           : pet.image && !pet.image.startsWith("http")
-                          ? `http://localhost:8000${pet.image}`
+                          ? `https://assignment-03-77.onrender.com${pet.image}`
                           : pet.image ||
                             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s" // Fall back to the existing image or a default
                       }
@@ -389,7 +404,7 @@ function ProfilePage() {
                       className="h-16 w-16 rounded-full object-cover"
                       src={
                         pet.image && !pet.image.startsWith("http")
-                          ? `http://localhost:8000${pet.image}`
+                          ? `https://assignment-03-77.onrender.com${pet.image}`
                           : pet.image ||
                             pet.imageUrl ||
                             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG01veQWF8uwTv__jmxyH2hM-oKPJc7S0l04GVeuYAPA&s"

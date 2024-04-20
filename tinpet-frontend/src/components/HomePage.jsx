@@ -14,11 +14,14 @@ function HomePage() {
   const fetchUserPets = useCallback(async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:8000/api/my-pets", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://assignment-03-77.onrender.com/api/my-pets",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await response.json();
       setUserPets(data);
     } catch (error) {
@@ -29,7 +32,9 @@ function HomePage() {
   useEffect(() => {
     const fetchPets = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/pets/latest");
+        const response = await fetch(
+          "https://assignment-03-77.onrender.com/api/pets/latest"
+        );
         const petsData = await response.json();
         setPets(petsData);
       } catch (error) {
@@ -76,14 +81,17 @@ function HomePage() {
     }
 
     const token = await getAccessTokenSilently();
-    const response = await fetch("http://localhost:8000/api/matches", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ pet1Id: userPetId, pet2Id: otherPetId }),
-    });
+    const response = await fetch(
+      "https://assignment-03-77.onrender.com/api/matches",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pet1Id: userPetId, pet2Id: otherPetId }),
+      }
+    );
 
     if (response.ok) {
       setMatchedPets(new Map(matchedPets.set(matchKey, true)));
@@ -135,7 +143,7 @@ function HomePage() {
                   src={
                     pet.image && pet.image.startsWith("http")
                       ? pet.image
-                      : `http://localhost:8000${pet.image}`
+                      : `https://assignment-03-77.onrender.com${pet.image}`
                   }
                   alt={pet.name}
                   className="object-cover w-full h-full rounded-lg"

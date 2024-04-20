@@ -8,7 +8,7 @@ function MatchesPage() {
   useEffect(() => {
     async function fetchMatches() {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:8000/api/matches", {
+      const response = await fetch("https://assignment-03-77.onrender.com/api/matches", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -42,7 +42,7 @@ function MatchesPage() {
                 src={
                   match.pet1.image.startsWith("http")
                     ? match.pet1.image
-                    : `http://localhost:8000${match.pet1.image}`
+                    : `https://assignment-03-77.onrender.com${match.pet1.image}`
                 }
                 alt={match.pet1.name}
                 className="w-32 h-32 object-cover rounded-full border-2 border-gray-300"
@@ -66,7 +66,7 @@ function MatchesPage() {
                 src={
                   match.pet2.image.startsWith("http")
                     ? match.pet2.image
-                    : `http://localhost:8000${match.pet2.image}`
+                    : `https://assignment-03-77.onrender.com${match.pet2.image}`
                 }
                 alt={match.pet2.name}
                 className="w-32 h-32 object-cover rounded-full border-2 border-gray-300"

@@ -148,7 +148,7 @@ describe("ProfilePage Component", () => {
     fireEvent.click(screen.getByText("Add Pet"));
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/pets",
+        "https://assignment-03-77.onrender.com/api/pets",
         expect.objectContaining({
           method: "POST",
           body: expect.any(FormData),
