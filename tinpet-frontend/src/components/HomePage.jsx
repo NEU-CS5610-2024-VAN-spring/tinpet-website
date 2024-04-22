@@ -26,7 +26,6 @@ function HomePage() {
     };
 
     if (isAuthenticated) {
-      fetchPets();
       fetchUserPets();
     }
   }, [isAuthenticated]);
