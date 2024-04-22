@@ -11,8 +11,8 @@ function HomePage() {
   const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
+    fetchPets();
     if (isAuthenticated) {
-      fetchPets();
       fetchUserPets();
     }
   }, [isAuthenticated]);
