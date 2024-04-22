@@ -14,7 +14,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 8000;
 
-app.use(cors());
+const whitelist = [
+  "http://localhost:3000",
+  "https://tinpet-n2o6dxbtc-shirui-chens-projects.vercel.app",
+];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
@@ -138,22 +153,21 @@ app.get("/me", requireAuth, async (req, res) => {
 });
 
 app.get("/api/my-pets", requireAuth, async (req, res) => {
-    const auth0Id = req.auth.payload.sub;
-    try {
-      const user = await prisma.user.findUnique({
-        where: { auth0Id },
-        include: { pets: true },
-      });
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      res.status(200).json(user.pets);
-    } catch (error) {
-      console.error("Error fetching user's pets:", error);
-      res.status(500).json({ error: "Error fetching user's pets" });
+  const auth0Id = req.auth.payload.sub;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      include: { pets: true },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
-  });
-  
+    res.status(200).json(user.pets);
+  } catch (error) {
+    console.error("Error fetching user's pets:", error);
+    res.status(500).json({ error: "Error fetching user's pets" });
+  }
+});
 
 app.get("/api/matches", requireAuth, async (req, res) => {
   try {
@@ -173,10 +187,9 @@ app.get("/api/matches", requireAuth, async (req, res) => {
 app.post("/verify-user", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
   console.log("auth0Id", auth0Id);
-  s;
+
   try {
     const user = await prisma.user.findUnique({ where: { auth0Id } });
-
     if (user) {
       res.json(user);
     } else {
@@ -280,12 +293,15 @@ app.post("/api/matches", requireAuth, async (req, res) => {
   }
 });
 
-app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res) => {
+app.put(
+  "/api/pets/:id",
+  [requireAuth, upload.single("image")],
+  async (req, res) => {
     const { id } = req.params;
     const { name, age, breed, gender, imageUrl } = req.body;
     const parsedAge = parseInt(age, 10);
     const imagePath = req.file ? `/uploads/${req.file.filename}` : imageUrl;
-  
+
     try {
       const updateData = {
         name,
@@ -293,24 +309,24 @@ app.put("/api/pets/:id", [requireAuth, upload.single("image")], async (req, res)
         breed,
         gender,
       };
-  
+
       // Only update image path if new image is provided
       if (req.file || imageUrl) {
         updateData.image = imagePath;
       }
-  
+
       const pet = await prisma.pet.update({
         where: { id: parseInt(id, 10) },
         data: updateData,
       });
-  
+
       res.json(pet);
     } catch (error) {
       console.error(`Error updating pet with ID ${id}:`, error);
       res.status(500).json({ error: "Failed to update pet" });
     }
-  });
-  
+  }
+);
 
 app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   const { id } = req.params;

@@ -5,7 +5,7 @@ import AnimalFacts from "./AnimalFacts";
 function HomePage() {
   const [pets, setPets] = useState([]);
   const [userPets, setUserPets] = useState([]);
-  const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState(null);
+  const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState("");
   const [petToMatch, setPetToMatch] = useState(null);
   const [matchedPets, setMatchedPets] = useState(new Map());
   const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } =
@@ -82,9 +82,13 @@ function HomePage() {
 
   const createMatch = async (userPetId, otherPetId) => {
     const matchKey = `${userPetId}-${otherPetId}`;
-    const reverseMatchKey = `${otherPetId}-${userPetId}`;
 
-    if (matchedPets.has(matchKey) || matchedPets.has(reverseMatchKey)) {
+    if (userPetId === otherPetId) {
+      alert("Error: A pet cannot match with itself.");
+      return;
+    }
+
+    if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
@@ -106,8 +110,7 @@ function HomePage() {
       setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       alert("Match created successfully!");
     } else {
-      const errorData = await response.json(); // Assuming the server sends a JSON response with error details.
-      alert(`Failed to create match: ${errorData.message}`);
+      alert("Failed to create match.");
     }
 
     setSelectedPetIdForMatch(null);
@@ -182,7 +185,7 @@ function HomePage() {
           <label htmlFor="pet-select">Choose your pet to match:</label>
           <select
             id="pet-select"
-            value={selectedPetIdForMatch || ""}
+            value={selectedPetIdForMatch}
             onChange={handlePetSelectionChange}
             className="ml-2 border p-2"
           >
@@ -196,7 +199,7 @@ function HomePage() {
           <button
             onClick={handleConfirmMatch}
             className="bg-blue-500 text-white p-2 ml-4"
-            disabled={!selectedPetIdForMatch} // Disable button until a pet is selected
+            disabled={!selectedPetIdForMatch || !petToMatch}
           >
             Confirm Match
           </button>
