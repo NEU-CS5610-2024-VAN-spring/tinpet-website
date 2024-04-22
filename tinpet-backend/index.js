@@ -16,7 +16,7 @@ const port = process.env.PORT || 8000;
 
 const whitelist = [
   "http://localhost:3000",
-  "https://tinpet-png1tubvj-shirui-chens-projects.vercel.app",
+  "tinpet-phi.vercel.app",
 ];
 const corsOptions = {
   origin: function (origin, callback) {
