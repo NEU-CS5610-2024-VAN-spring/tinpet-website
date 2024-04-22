@@ -77,26 +77,26 @@ function HomePage() {
     }
 
     createMatch(selectedPetIdForMatch, petToMatch);
-    setIsModalOpen(false); // 关闭模态窗口
+    setIsModalOpen(false);
   };
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
-    const response = await fetch(
-      "https://assignment-03-77.onrender.com/api/matches",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ pet1Id: userPetId, pet2Id: otherPetId }),
-      }
-    );
+    const formattedUserPetId = parseInt(userPetId, 10);
+    const formattedOtherPetId = parseInt(otherPetId, 10);
+
+    const response = await fetch("https://assignment-03-77.onrender.com/api/matches", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ pet1Id: formattedUserPetId, pet2Id: formattedOtherPetId }),
+    });
 
     if (response.ok) {
       setMatchedPets(
-        new Map(matchedPets.set(`${userPetId}-${otherPetId}`, true))
+        new Map(matchedPets.set(`${formattedUserPetId}-${formattedOtherPetId}`, true))
       );
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
@@ -104,7 +104,7 @@ function HomePage() {
     } else {
       alert("Failed to create match.");
     }
-  };
+};
 
   const handlePetSelectionChange = (e) => {
     setSelectedPetIdForMatch(e.target.value);
