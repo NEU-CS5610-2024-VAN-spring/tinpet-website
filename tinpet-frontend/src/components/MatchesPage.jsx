@@ -6,34 +6,53 @@ function MatchesPage() {
   const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    async function fetchMatches() {
-      const token = await getAccessTokenSilently();
-      const response = await fetch("https://assignment-03-77.onrender.com/api/matches", {
+    fetchMatches();
+  }, []);
+
+  const fetchMatches = async () => {
+    const token = await getAccessTokenSilently();
+    const response = await fetch(
+      "https://assignment-03-77.onrender.com/api/matches",
+      {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const filteredMatches = data.filter(
-          (match) => match.pet1.id !== match.pet2.id
-        );
-        setMatches(filteredMatches);
-      } else {
-        console.error("Failed to fetch matches");
       }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setMatches(data);
+    } else {
+      console.error("Failed to fetch matches");
     }
+  };
 
-    fetchMatches();
-  }, [getAccessTokenSilently]);
+  const deleteMatch = async (matchId) => {
+    const token = await getAccessTokenSilently();
+    const response = await fetch(
+      `https://assignment-03-77.onrender.com/api/matches/${matchId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.ok) {
+      setMatches(matches.filter((match) => match.id !== matchId));
+      alert("Match deleted successfully!");
+    } else {
+      alert("Failed to delete match.");
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-5">
       <h2 className="text-2xl font-semibold text-center mb-6">My Matches</h2>
       <div className="space-y-6">
-        {matches.map((match, index) => (
+        {matches.map((match) => (
           <div
-            key={index}
+            key={match.id}
             className="bg-white rounded-lg shadow-md p-6 grid grid-cols-2 gap-4"
           >
             <div className="flex flex-col items-center">
@@ -84,6 +103,12 @@ function MatchesPage() {
                 <strong>Gender:</strong> {match.pet2.gender}
               </p>
             </div>
+            <button
+              onClick={() => deleteMatch(match.id)}
+              className="col-span-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Delete Match
+            </button>
           </div>
         ))}
       </div>

@@ -321,13 +321,18 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   res.status(204).send();
 });
 
-app.delete("/api/matches/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
-  await prisma.match.delete({
-    where: { id: parseInt(id) },
+app.delete('/api/matches/:id', requireAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+      await prisma.match.delete({
+        where: { id: parseInt(id, 10) },
+      });
+      res.status(204).send();
+    } catch (error) {
+      console.error(`Failed to delete match with ID ${id}:`, error);
+      res.status(500).send('Failed to delete match');
+    }
   });
-  res.status(204).send();
-});
 
 app.delete("/api/users/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
