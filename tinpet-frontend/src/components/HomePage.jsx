@@ -24,6 +24,7 @@ function HomePage() {
         console.error("Failed to fetch pets:", error);
       }
     };
+    fetchPets();
 
     if (isAuthenticated) {
       fetchUserPets();
