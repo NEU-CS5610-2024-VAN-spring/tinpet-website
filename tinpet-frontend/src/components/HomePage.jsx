@@ -54,28 +54,37 @@ function HomePage() {
       return;
     }
 
-    setPetToMatch(otherPetId);
-
     if (userPets.length === 0) {
       alert("You do not have any pets to match.");
       return;
     }
 
-    if (userPets.length === 1) {
-      setSelectedPetIdForMatch(userPets[0].id); // Default selection for single pet
-      if (!matchedPets.has(userPets[0].id + "-" + otherPetId)) {
-        createMatch(userPets[0].id, otherPetId);
-      } else {
-        alert("You have already matched with this pet.");
-      }
+    // If the user has more than one pet and hasn't selected one yet, prompt them.
+    if (userPets.length > 1 && selectedPetIdForMatch === null) {
+      alert("Please select one of your pets to match.");
+      return;
+    }
+
+    // Prevent a pet from matching with itself.
+    if (selectedPetIdForMatch === otherPetId) {
+      alert("A pet cannot match with itself. Please select a different pet.");
+      return;
+    }
+
+    // Check for an existing match to avoid duplicates.
+    const matchKey = `${selectedPetIdForMatch}-${otherPetId}`;
+    if (matchedPets.has(matchKey)) {
+      alert("You have already matched with this pet.");
     } else {
-      setSelectedPetIdForMatch(userPets[0].id); // Default selection
+      createMatch(selectedPetIdForMatch, otherPetId);
     }
   };
 
   const createMatch = async (userPetId, otherPetId) => {
-    const matchKey = userPetId + "-" + otherPetId;
-    if (matchedPets.has(matchKey)) {
+    const matchKey = `${userPetId}-${otherPetId}`;
+    const reverseMatchKey = `${otherPetId}-${userPetId}`;
+
+    if (matchedPets.has(matchKey) || matchedPets.has(reverseMatchKey)) {
       alert("You have already matched these pets.");
       return;
     }
@@ -97,7 +106,8 @@ function HomePage() {
       setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       alert("Match created successfully!");
     } else {
-      alert("Failed to create match.");
+      const errorData = await response.json(); // Assuming the server sends a JSON response with error details.
+      alert(`Failed to create match: ${errorData.message}`);
     }
 
     setSelectedPetIdForMatch(null);
@@ -167,15 +177,16 @@ function HomePage() {
           ))
         )}
       </div>
-      {userPets.length > 1 && petToMatch && (
+      {userPets.length > 1 && (
         <div className="mt-4">
           <label htmlFor="pet-select">Choose your pet to match:</label>
           <select
             id="pet-select"
-            value={selectedPetIdForMatch}
+            value={selectedPetIdForMatch || ""}
             onChange={handlePetSelectionChange}
             className="ml-2 border p-2"
           >
+            <option value="">Select a Pet</option>
             {userPets.map((pet) => (
               <option key={pet.id} value={pet.id}>
                 {pet.name}
@@ -185,6 +196,7 @@ function HomePage() {
           <button
             onClick={handleConfirmMatch}
             className="bg-blue-500 text-white p-2 ml-4"
+            disabled={!selectedPetIdForMatch} // Disable button until a pet is selected
           >
             Confirm Match
           </button>
