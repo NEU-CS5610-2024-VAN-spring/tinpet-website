@@ -49,16 +49,21 @@ function HomePage() {
       loginWithRedirect();
       return;
     }
-
+  
+    if (userPets.length === 1 && userPets[0].id === petId) {
+      alert("You cannot match a pet with itself.");
+      return;
+    }
+  
     setPetToMatch(petId);
-
+  
     if (userPets.length > 1) {
       setIsModalOpen(true);
     } else if (userPets.length === 1) {
       setSelectedPetIdForMatch(userPets[0].id);
       handleConfirmMatch();
     }
-  };
+  };  
 
   const handleConfirmMatch = () => {
     if (
@@ -85,18 +90,26 @@ function HomePage() {
     const formattedUserPetId = parseInt(userPetId, 10);
     const formattedOtherPetId = parseInt(otherPetId, 10);
 
-    const response = await fetch("https://assignment-03-77.onrender.com/api/matches", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ pet1Id: formattedUserPetId, pet2Id: formattedOtherPetId }),
-    });
+    const response = await fetch(
+      "https://assignment-03-77.onrender.com/api/matches",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pet1Id: formattedUserPetId,
+          pet2Id: formattedOtherPetId,
+        }),
+      }
+    );
 
     if (response.ok) {
       setMatchedPets(
-        new Map(matchedPets.set(`${formattedUserPetId}-${formattedOtherPetId}`, true))
+        new Map(
+          matchedPets.set(`${formattedUserPetId}-${formattedOtherPetId}`, true)
+        )
       );
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
@@ -104,7 +117,7 @@ function HomePage() {
     } else {
       alert("Failed to create match.");
     }
-};
+  };
 
   const handlePetSelectionChange = (e) => {
     setSelectedPetIdForMatch(e.target.value);
