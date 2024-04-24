@@ -50,37 +50,32 @@ function HomePage() {
       return;
     }
   
-    if (userPets.length === 1 && userPets[0].id === petId) {
-      alert("You cannot match a pet with itself.");
-      return;
-    }
-  
     setPetToMatch(petId);
-  
+    
     if (userPets.length > 1) {
       setIsModalOpen(true);
     } else if (userPets.length === 1) {
-      setSelectedPetIdForMatch(userPets[0].id);
-      handleConfirmMatch();
+      if (userPets[0].id === petId) {
+        alert("You cannot match a pet with itself.");
+      } else {
+        setSelectedPetIdForMatch(userPets[0].id);
+        handleConfirmMatch();
+      }
     }
-  };  
+  };
 
   const handleConfirmMatch = () => {
-    if (
-      !selectedPetIdForMatch ||
-      !petToMatch ||
-      selectedPetIdForMatch === petToMatch
-    ) {
+    if (!selectedPetIdForMatch || !petToMatch || selectedPetIdForMatch === petToMatch) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-
+  
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-
+  
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
