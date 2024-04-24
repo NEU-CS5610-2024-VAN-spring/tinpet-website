@@ -83,8 +83,8 @@ function HomePage() {
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
-    userPetId = userPetId.toString();
-    otherPetId = otherPetId.toString();
+    userPetId = parseInt(userPetId, 10);
+    otherPetId = parseInt(otherPetId, 10);
   
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
