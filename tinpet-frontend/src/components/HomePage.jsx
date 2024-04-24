@@ -49,16 +49,17 @@ function HomePage() {
       loginWithRedirect();
       return;
     }
-  
-    setPetToMatch(petId);
+    
+    setPetToMatch(petId.toString());
     
     if (userPets.length > 1) {
       setIsModalOpen(true);
     } else if (userPets.length === 1) {
-      if (userPets[0].id === petId) {
+      const userPetId = userPets[0].id.toString();
+      if (userPetId === petId.toString()) {
         alert("You cannot match a pet with itself.");
       } else {
-        setSelectedPetIdForMatch(userPets[0].id);
+        setSelectedPetIdForMatch(userPetId);
         handleConfirmMatch();
       }
     }
@@ -82,9 +83,9 @@ function HomePage() {
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
-    const formattedUserPetId = parseInt(userPetId, 10);
-    const formattedOtherPetId = parseInt(otherPetId, 10);
-
+    userPetId = userPetId.toString();
+    otherPetId = otherPetId.toString();
+  
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
       {
@@ -94,23 +95,24 @@ function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          pet1Id: formattedUserPetId,
-          pet2Id: formattedOtherPetId,
+          pet1Id: userPetId,
+          pet2Id: otherPetId,
         }),
       }
     );
-
+  
     if (response.ok) {
       setMatchedPets(
         new Map(
-          matchedPets.set(`${formattedUserPetId}-${formattedOtherPetId}`, true)
+          matchedPets.set(`${userPetId}-${otherPetId}`, true)
         )
       );
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
       setPetToMatch(null);
     } else {
-      alert("Failed to create match.");
+      const error = await response.json();
+      alert(`Failed to create match: ${error.message}`);
     }
   };
 
