@@ -36,8 +36,19 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (id) => {
-    setPetToMatch(id.toString());
-    setIsModalOpen(true);
+    setPetToMatch(petId.toString());
+    
+    if (userPets.length > 1) {
+      setIsModalOpen(true);
+    } else if (userPets.length === 1) {
+      const userPetId = userPets[0].id.toString();
+      if (userPetId === petId.toString()) {
+        alert("You cannot match a pet with itself.");
+      } else {
+        setSelectedPetIdForMatch(userPetId);
+        handleConfirmMatch();
+      }
+    }
   };
 
   const handleConfirmMatch = async () => {
