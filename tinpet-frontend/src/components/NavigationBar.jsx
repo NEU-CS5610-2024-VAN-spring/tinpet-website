@@ -15,7 +15,7 @@ function NavigationBar() {
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
         </button>
-        <ul className={`md:flex flex-col md:flex-row items-center ${isMenuOpen ? 'flex' : 'hidden'} space-y-2 md:space-y-0 md:space-x-6 mt-4 md:mt-0`}>
+        <ul className={`flex-col md:flex-row md:flex items-center ${isMenuOpen ? 'flex' : 'hidden'} space-y-2 md:space-y-0 md:space-x-6 mt-4 md:mt-0 absolute md:relative bg-gray-800 w-full md:w-auto`}>
           <li>
             <Link
               to="/"
