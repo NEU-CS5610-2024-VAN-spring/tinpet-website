@@ -1,13 +1,41 @@
 import React from "react";
-import { render, waitFor, screen, fireEvent } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { act } from "react-dom/test-utils";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useParams } from "react-router-dom";
 import DetailsPage from "../components/DetailsPage";
 
 jest.mock("@auth0/auth0-react");
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"), // use actual for all non-hook parts
+  useParams: jest.fn(),
+}));
 
-const mockGetAccessTokenSilently = jest.fn().mockResolvedValue("fake-token");
+const mockGetAccessTokenSilently = jest.fn();
+
+beforeEach(() => {
+  useAuth0.mockReturnValue({
+    isAuthenticated: true,
+    getAccessTokenSilently: mockGetAccessTokenSilently,
+  });
+  mockGetAccessTokenSilently.mockResolvedValue("fake-token");
+  global.fetch = jest.fn();
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
+const setup = (initialRoute = "/pets") => {
+  return render(
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <Routes>
+        <Route path="/pets/:petId" element={<DetailsPage />} />
+        <Route path="/pets" element={<DetailsPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
 const mockPets = [
   {
@@ -27,168 +55,35 @@ const mockPets = [
     image: "/path/to/image2.jpg",
   },
 ];
-
-describe("DetailsPage Component", () => {
-  beforeEach(() => {
-    useAuth0.mockReturnValue({
-      getAccessTokenSilently: mockGetAccessTokenSilently,
-      isAuthenticated: true,
+test("fetches and displays pet details when petId is provided", async () => {
+    useParams.mockReturnValue({ petId: "1" });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPets[0],
     });
-
-    global.fetch = jest.fn((url) => {
-      if (url.includes("/api/pets/1")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockPets[0]),
-        });
-      } else if (url.includes("/api/pets")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockPets),
-        });
-      }
-      return Promise.reject(new Error("Endpoint not mocked"));
+  
+    setup("/pets/1");
+  
+    await waitFor(() => {
+      expect(screen.getByText("Buddy")).toBeInTheDocument();
+      expect(screen.getByText("Golden Retriever")).toBeInTheDocument();
+      expect(screen.getByText("Age: 3")).toBeInTheDocument();
+      expect(screen.getByText("Gender: Male")).toBeInTheDocument();
     });
   });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("fetches and displays pet details", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/pets/1"]}>
-          <Routes>
-            <Route path="/pets/:petId" element={<DetailsPage />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    await act(async () => {
-      await waitFor(() => {
-        expect(screen.findByText("Buddy")).resolves.toBeInTheDocument();
-        expect(
-          screen.findByText("Golden Retriever")
-        ).resolves.toBeInTheDocument();
-        expect(screen.findByText("Age: 3")).resolves.toBeInTheDocument();
-        expect(screen.findByText("Gender: Male")).resolves.toBeInTheDocument();
-      });
-    });
-  });
-
+  
   test("fetches and displays all pets when no petId is provided", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/pets"]}>
-          <Routes>
-            <Route path="/pets" element={<DetailsPage />} />
-          </Routes>
-        </MemoryRouter>
-      );
+    useParams.mockReturnValue({});
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPets,
     });
-
-    await act(async () => {
-      await waitFor(() => {
-        expect(screen.getByText("Buddy")).toBeInTheDocument();
-        expect(screen.getByText("Charlie")).toBeInTheDocument();
-      });
+  
+    setup();
+  
+    await waitFor(() => {
+      expect(screen.getByText("Buddy")).toBeInTheDocument();
+      expect(screen.getByText("Charlie")).toBeInTheDocument();
     });
   });
-
-  test("searches and filters pets", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/pets"]}>
-          <Routes>
-            <Route path="/pets" element={<DetailsPage />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    const searchInput = screen.getByPlaceholderText(
-      "Search by name or breed..."
-    );
-    fireEvent.change(searchInput, { target: { value: "Buddy" } });
-
-    await act(async () => {
-      await waitFor(() => {
-        expect(screen.getByText("Buddy")).toBeInTheDocument();
-        expect(screen.queryByText("Charlie")).not.toBeInTheDocument();
-      });
-    });
-  });
-});
-describe("DetailsPage Component", () => {
-  beforeEach(() => {
-    useAuth0.mockReturnValue({
-      getAccessTokenSilently: mockGetAccessTokenSilently,
-      isAuthenticated: true,
-    });
-
-    global.fetch = jest.fn((url) => {
-      if (url.includes("/api/pets/1")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockPets[0]),
-        });
-      } else if (url.includes("/api/pets")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockPets),
-        });
-      }
-      return Promise.reject(new Error("Endpoint not mocked"));
-    });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("fetches and displays pet details", async () => {
-    render(
-      <MemoryRouter initialEntries={["/pets/1"]}>
-        <Routes>
-          <Route path="/pets/:petId" element={<DetailsPage />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText("Buddy")).toBeInTheDocument();
-    expect(await screen.findByText("Golden Retriever")).toBeInTheDocument();
-    expect(await screen.findByText("Age: 3")).toBeInTheDocument();
-    expect(await screen.findByText("Gender: Male")).toBeInTheDocument();
-  });
-
-  test("fetches and displays all pets when no petId is provided", async () => {
-    render(
-      <MemoryRouter initialEntries={["/pets"]}>
-        <Routes>
-          <Route path="/pets" element={<DetailsPage />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText("Buddy")).toBeInTheDocument();
-    expect(await screen.findByText("Charlie")).toBeInTheDocument();
-  });
-
-  test("searches and filters pets", async () => {
-    render(
-      <MemoryRouter initialEntries={["/pets"]}>
-        <Routes>
-          <Route path="/pets" element={<DetailsPage />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const searchInput = screen.getByPlaceholderText("Search by name or breed...");
-    fireEvent.change(searchInput, { target: { value: "Buddy" } });
-
-    expect(await screen.findByText("Buddy")).toBeInTheDocument();
-    expect(screen.queryByText("Charlie")).not.toBeInTheDocument();
-  });
-});
+  

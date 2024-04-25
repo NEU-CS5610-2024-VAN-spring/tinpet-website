@@ -177,7 +177,7 @@ function DetailsPage() {
           </select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {allPets.map((pet) => (
+          {filteredPets.map((pet) => (
             <div
               key={pet.id}
               className="bg-white rounded-lg shadow overflow-hidden group transform transition duration-300 hover:scale-105"
