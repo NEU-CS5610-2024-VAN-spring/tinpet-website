@@ -155,20 +155,27 @@ app.get("/api/my-pets", requireAuth, async (req, res) => {
 });
 
 app.get("/api/matches", requireAuth, async (req, res) => {
-  try {
-    const matches = await prisma.match.findMany({
-      include: {
-        pet1: true,
-        pet2: true,
-      },
-    });
-    res.json(matches);
-  } catch (error) {
-    console.error("Error fetching matches:", error);
-    res.status(500).send("Error fetching matches");
-  }
-});
-
+    const userId = req.auth.payload.sub;
+    try {
+      const matches = await prisma.match.findMany({
+        where: {
+          OR: [
+            { pet1: { ownerId: userId } },
+            { pet2: { ownerId: userId } }
+          ]
+        },
+        include: {
+          pet1: true,
+          pet2: true,
+        },
+      });
+      res.json(matches);
+    } catch (error) {
+      console.error("Error fetching matches:", error);
+      res.status(500).send("Error fetching matches");
+    }
+  });
+  
 app.post("/verify-user", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
   console.log("auth0Id", auth0Id);
