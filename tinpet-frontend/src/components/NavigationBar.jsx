@@ -10,7 +10,6 @@ function NavigationBar() {
     <nav className="bg-gray-800 p-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          {/* 汉堡菜单按钮，只在小屏幕上显示 */}
           <button
             className="text-white inline-block md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -18,12 +17,11 @@ function NavigationBar() {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
           </button>
         </div>
-        {/* 菜单项，在小屏幕上默认隐藏，在大屏幕上保持显示 */}
-        <ul className={`flex-col md:flex-row md:flex space-x-0 md:space-x-6 mt-4 md:mt-0 ${isMenuOpen ? 'flex' : 'hidden'} md:block`}>
+        <ul className={`flex-col md:flex-row md:flex space-x-0 md:space-x-6 mt-4 md:mt-0 ${isMenuOpen ? 'flex' : 'hidden'} md:flex`}>
           <li>
             <Link
               to="/"
-              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 mt-2 md:mt-0"
             >
               Home
             </Link>
@@ -31,7 +29,7 @@ function NavigationBar() {
           <li>
             <Link
               to="/details"
-              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 mt-2 md:mt-0"
             >
               Details
             </Link>
@@ -39,7 +37,7 @@ function NavigationBar() {
           <li>
             <Link
               to="/profile"
-              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 mt-2 md:mt-0"
             >
               Profile
             </Link>
@@ -47,7 +45,7 @@ function NavigationBar() {
           <li>
             <Link
               to="/matches"
-              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 mt-2 md:mt-0"
             >
               Matches
             </Link>
@@ -55,7 +53,7 @@ function NavigationBar() {
           <li>
             <Link
               to="/authdebugger"
-              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+              className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-400 mt-2 md:mt-0"
             >
               AuthDebugger
             </Link>
@@ -64,7 +62,7 @@ function NavigationBar() {
             <li>
               <button
                 onClick={() => logout({ returnTo: "https://tinpet-phi.vercel.app/" })}
-                className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400"
+                className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400 mt-2 md:mt-0"
               >
                 Logout
               </button>
@@ -73,7 +71,7 @@ function NavigationBar() {
             <li>
               <button
                 onClick={loginWithRedirect}
-                className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400"
+                className="block bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400 mt-2 md:mt-0"
               >
                 Login
               </button>
