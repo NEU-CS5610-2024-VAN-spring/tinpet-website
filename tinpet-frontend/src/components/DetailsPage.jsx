@@ -38,7 +38,6 @@ function DetailsPage() {
 
   const handleMatchClick = (id) => {
     if (!isAuthenticated) {
-      loginwithRedirect();
       return;
     }
     setPetToMatch(id.toString());
