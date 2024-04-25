@@ -71,6 +71,23 @@ function DetailsPage() {
       }
     }
   };
+
+  useEffect(() => {
+    if (petToMatch) {
+      if (userPets.length > 1) {
+        setIsModalOpen(true);
+      } else if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petToMatch) {
+          alert("You cannot match a pet with itself.");
+          setPetToMatch(null);
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch(userPetId, petToMatch);
+        }
+      }
+    }
+  }, [petToMatch, userPets]);
   
   const handleConfirmMatch = () => {
     if (
