@@ -51,7 +51,9 @@ function NavigationBar() {
         {isAuthenticated ? (
           <li>
             <button
-              onClick={() => logout({ returnTo: window.location.origin })}
+              onClick={() =>
+                logout({ returnTo: "https://tinpet-phi.vercel.app" })
+              }
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400"
             >
               Logout
