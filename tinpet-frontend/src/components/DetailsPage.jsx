@@ -95,7 +95,6 @@ function DetailsPage() {
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
-  
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
@@ -129,7 +128,6 @@ function DetailsPage() {
       setSelectedPetIdForMatch("");
       setPetToMatch(null);
     } else {
-      setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       const error = await response.json();
       alert(`Failed to create match: ${error.message}`);
     }
@@ -143,30 +141,34 @@ function DetailsPage() {
 
   if (!petId && allPets.length) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
-        {allPets.map((pet) => (
-          <div
-            key={pet.id}
-            className="bg-white rounded-lg shadow overflow-hidden my-4 p-4"
-          >
-            <img
-              src={formatImageUrl(pet.image)}
-              alt={pet.name}
-              className="w-full h-48 object-cover"
-            />
-            <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
-            <p>{pet.breed}</p>
-            <p>{pet.age} years old</p>
-            <p>{pet.gender}</p>
-            <button
-              onClick={() => handleMatchClick(pet.id)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {allPets.map((pet) => (
+            <div
+              key={pet.id}
+              className="bg-white rounded-lg shadow overflow-hidden group transform transition duration-300 hover:scale-105"
             >
-              Match with My Pet
-            </button>
-          </div>
-        ))}
+              <img
+                src={formatImageUrl(pet.image)}
+                alt={pet.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
+                <p>{pet.breed}</p>
+                <p>{pet.age} years old</p>
+                <p>{pet.gender}</p>
+                <button
+                  onClick={() => handleMatchClick(pet.id)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2"
+                >
+                  Match with My Pet
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   } else if (petDetails) {
