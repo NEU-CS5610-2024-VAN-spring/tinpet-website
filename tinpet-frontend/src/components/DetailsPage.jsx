@@ -7,9 +7,10 @@ function DetailsPage() {
   const { petId } = useParams();
   const [petDetails, setPetDetails] = useState(null);
   const [allPets, setAllPets] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState("");
   const [petToMatch, setPetToMatch] = useState(null);
+  const [matchedPets, setMatchedPets] = useState(new Map());
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [userPets, setUserPets] = useState([]);
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
 
@@ -35,7 +36,12 @@ function DetailsPage() {
     setUserPets(data);
   }
 
-  const handleMatchClick = (id) => {
+  const handleMatchClick = (petId) => {
+    if (!isAuthenticated) {
+      loginWithRedirect();
+      return;
+    }
+    
     setPetToMatch(petId.toString());
     
     if (userPets.length > 1) {
@@ -51,32 +57,54 @@ function DetailsPage() {
     }
   };
 
-  const handleConfirmMatch = async () => {
-    if (!selectedPetIdForMatch || selectedPetIdForMatch === petToMatch) {
-      alert("Invalid match. Please select a different pet or check your selection.");
+  const handleConfirmMatch = () => {
+    if (!selectedPetIdForMatch || !petToMatch || selectedPetIdForMatch === petToMatch) {
+      alert("Please make sure you have selected different pets to match.");
       return;
     }
+  
+    const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
+    if (matchedPets.has(matchKey)) {
+      alert("You have already matched these pets.");
+      return;
+    }
+  
+    createMatch(selectedPetIdForMatch, petToMatch);
+    setIsModalOpen(false);
+  };
 
+  const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
-    const response = await fetch("https://assignment-03-77.onrender.com/api/matches", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        pet1Id: parseInt(selectedPetIdForMatch, 10),
-        pet2Id: parseInt(petToMatch, 10)
-      })
-    });
-
+    userPetId = parseInt(userPetId, 10);
+    otherPetId = parseInt(otherPetId, 10);
+  
+    const response = await fetch(
+      "https://assignment-03-77.onrender.com/api/matches",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pet1Id: userPetId,
+          pet2Id: otherPetId,
+        }),
+      }
+    );
+  
     if (response.ok) {
+      setMatchedPets(
+        new Map(
+          matchedPets.set(`${userPetId}-${otherPetId}`, true)
+        )
+      );
       alert("Match created successfully!");
-      setIsModalOpen(false);
-      fetchPets(); // Optionally refresh pets list
+      setSelectedPetIdForMatch("");
+      setPetToMatch(null);
     } else {
-      const errorData = await response.json();
-      alert(`Failed to create match: ${errorData.message}`);
+      const error = await response.json();
+      alert(`Failed to create match: ${error.message}`);
     }
   };
 
