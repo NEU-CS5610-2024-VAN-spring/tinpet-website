@@ -44,6 +44,7 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (petId) => {
+    console.log(petToMatch, petId.toString())
     if (petToMatch && petToMatch !== petId.toString()) {
       handleConfirmMatch();
     } else {
