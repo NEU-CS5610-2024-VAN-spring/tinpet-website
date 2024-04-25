@@ -21,53 +21,64 @@ function DetailsPage() {
 
   async function fetchPets() {
     const token = await getAccessTokenSilently();
-    const url = petId ? `https://assignment-03-77.onrender.com/api/pets/${petId}` : `https://assignment-03-77.onrender.com/api/pets`;
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const url = petId
+      ? `https://assignment-03-77.onrender.com/api/pets/${petId}`
+      : `https://assignment-03-77.onrender.com/api/pets`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const data = await response.json();
     petId ? setPetDetails(data) : setAllPets(data);
   }
 
   async function fetchUserPets() {
     const token = await getAccessTokenSilently();
-    const response = await fetch("https://assignment-03-77.onrender.com/api/my-pets", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(
+      "https://assignment-03-77.onrender.com/api/my-pets",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const data = await response.json();
     setUserPets(data);
   }
 
   const handleMatchClick = (petId) => {
-    if (petToMatch) {
-        handleConfirmMatch();
-      } else {
-        setPetToMatch(petId.toString());
-    
-        if (userPets.length > 1) {
-          setIsModalOpen(true);
-        } else if (userPets.length === 1) {
-          const userPetId = userPets[0].id.toString();
-          if (userPetId === petId.toString()) {
-            alert("You cannot match a pet with itself.");
-          } else {
-            setSelectedPetIdForMatch(userPetId);
-            handleConfirmMatch();
-          }
+    if (petToMatch && petToMatch !== petId.toString()) {
+      handleConfirmMatch();
+    } else {
+      setPetToMatch(petId.toString());
+  
+      if (userPets.length > 1) {
+        setIsModalOpen(true);
+      } else if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petId.toString()) {
+          alert("You cannot match a pet with itself.");
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch();
         }
       }
+    }
   };
 
   const handleConfirmMatch = () => {
-    if (!selectedPetIdForMatch || !petToMatch || selectedPetIdForMatch === petToMatch) {
+    if (
+      !selectedPetIdForMatch ||
+      !petToMatch ||
+      selectedPetIdForMatch === petToMatch
+    ) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-  
+
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-  
+
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
@@ -76,7 +87,7 @@ function DetailsPage() {
     const token = await getAccessTokenSilently();
     userPetId = parseInt(userPetId, 10);
     otherPetId = parseInt(otherPetId, 10);
-  
+
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
       {
@@ -91,12 +102,10 @@ function DetailsPage() {
         }),
       }
     );
-  
+
     if (response.ok) {
       setMatchedPets(
-        new Map(
-          matchedPets.set(`${userPetId}-${otherPetId}`, true)
-        )
+        new Map(matchedPets.set(`${userPetId}-${otherPetId}`, true))
       );
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
@@ -118,13 +127,25 @@ function DetailsPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
         {allPets.map((pet) => (
-          <div key={pet.id} className="bg-white rounded-lg shadow overflow-hidden my-4 p-4">
-            <img src={formatImageUrl(pet.image)} alt={pet.name} className="w-full h-48 object-cover" />
+          <div
+            key={pet.id}
+            className="bg-white rounded-lg shadow overflow-hidden my-4 p-4"
+          >
+            <img
+              src={formatImageUrl(pet.image)}
+              alt={pet.name}
+              className="w-full h-48 object-cover"
+            />
             <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
             <p>{pet.breed}</p>
             <p>{pet.age} years old</p>
             <p>{pet.gender}</p>
-            <button onClick={() => handleMatchClick(pet.id)} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Match with My Pet</button>
+            <button
+              onClick={() => handleMatchClick(pet.id)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Match with My Pet
+            </button>
           </div>
         ))}
       </div>
@@ -134,14 +155,25 @@ function DetailsPage() {
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden md:max-w-2xl my-8">
         <div className="md:flex">
           <div className="md:flex-shrink-0">
-            <img className="h-48 w-full object-cover md:h-full md:w-48" src={formatImageUrl(petDetails.image)} alt={petDetails.name} />
+            <img
+              className="h-48 w-full object-cover md:h-full md:w-48"
+              src={formatImageUrl(petDetails.image)}
+              alt={petDetails.name}
+            />
           </div>
           <div className="p-8">
-            <h1 className="block mt-1 text-lg leading-tight font-medium text-black">{petDetails.name}</h1>
+            <h1 className="block mt-1 text-lg leading-tight font-medium text-black">
+              {petDetails.name}
+            </h1>
             <p className="mt-2 text-gray-500">Age: {petDetails.age}</p>
             <p className="text-gray-500">Breed: {petDetails.breed}</p>
             <p className="text-gray-500">Gender: {petDetails.gender}</p>
-            <button onClick={() => handleMatchClick(petDetails.id)} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Match with My Pet</button>
+            <button
+              onClick={() => handleMatchClick(petDetails.id)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Match with My Pet
+            </button>
           </div>
         </div>
       </div>

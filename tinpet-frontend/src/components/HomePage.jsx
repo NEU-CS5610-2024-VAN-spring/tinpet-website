@@ -49,38 +49,42 @@ function HomePage() {
       loginWithRedirect();
       return;
     }
-    
+
     if (petToMatch) {
-        handleConfirmMatch();
-      } else {
-        setPetToMatch(petId.toString());
-    
-        if (userPets.length > 1) {
-          setIsModalOpen(true);
-        } else if (userPets.length === 1) {
-          const userPetId = userPets[0].id.toString();
-          if (userPetId === petId.toString()) {
-            alert("You cannot match a pet with itself.");
-          } else {
-            setSelectedPetIdForMatch(userPetId);
-            handleConfirmMatch();
-          }
+      handleConfirmMatch();
+    } else {
+      setPetToMatch(petId.toString());
+
+      if (userPets.length > 1) {
+        setIsModalOpen(true);
+      } else if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petId.toString()) {
+          alert("You cannot match a pet with itself.");
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch();
         }
       }
+    }
   };
 
   const handleConfirmMatch = () => {
-    if (!selectedPetIdForMatch || !petToMatch || selectedPetIdForMatch === petToMatch) {
+    if (
+      !selectedPetIdForMatch ||
+      !petToMatch ||
+      selectedPetIdForMatch === petToMatch
+    ) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-  
+
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-  
+
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
@@ -89,7 +93,7 @@ function HomePage() {
     const token = await getAccessTokenSilently();
     userPetId = parseInt(userPetId, 10);
     otherPetId = parseInt(otherPetId, 10);
-  
+
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
       {
@@ -104,12 +108,10 @@ function HomePage() {
         }),
       }
     );
-  
+
     if (response.ok) {
       setMatchedPets(
-        new Map(
-          matchedPets.set(`${userPetId}-${otherPetId}`, true)
-        )
+        new Map(matchedPets.set(`${userPetId}-${otherPetId}`, true))
       );
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
