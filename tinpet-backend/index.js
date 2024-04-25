@@ -156,15 +156,24 @@ app.get("/api/my-pets", requireAuth, async (req, res) => {
 
 app.get("/api/matches", requireAuth, async (req, res) => {
     const auth0Id = req.auth.payload.sub;
-  console.log("auth0Id", auth0Id);
+  
     try {
+      // 先找到用户
+      const user = await prisma.user.findUnique({
+        where: { auth0Id },
+        select: { id: true }
+      });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
       const userPets = await prisma.pet.findMany({
-        where: { ownerId: auth0Id },
+        where: { ownerId: user.id },
         select: { id: true }
       });
   
       if (!userPets.length) {
-        console.log("No pets found for user with Auth0 ID:", auth0Id);
         return res.status(404).json({ message: "No pets found for this user." });
       }
   
@@ -180,17 +189,12 @@ app.get("/api/matches", requireAuth, async (req, res) => {
         }
       });
   
-      if (matches.length === 0) {
-        console.log("No matches found for pets owned by user with Auth0 ID:", auth0Id);
-        return res.status(404).json({ message: "No matches found for user's pets." });
-      }
-  
       res.json(matches);
     } catch (error) {
-      console.error("Error fetching matches for Auth0 ID:", auth0Id, error);
+      console.error("Error fetching matches:", error);
       res.status(500).send("Error fetching matches");
     }
-  });
+  });  
   
 app.post("/verify-user", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
