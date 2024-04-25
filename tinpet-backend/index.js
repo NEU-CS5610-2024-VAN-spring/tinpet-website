@@ -155,47 +155,51 @@ app.get("/api/my-pets", requireAuth, async (req, res) => {
 });
 
 app.get("/api/matches", requireAuth, async (req, res) => {
-    const auth0Id = req.auth.payload.sub;
-  
-    try {
-      // 先找到用户
-      const user = await prisma.user.findUnique({
-        where: { auth0Id },
-        select: { id: true }
-      });
-  
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      const userPets = await prisma.pet.findMany({
-        where: { ownerId: user.id },
-        select: { id: true }
-      });
-  
-      if (!userPets.length) {
-        return res.status(404).json({ message: "No pets found for this user." });
-      }
-  
-      const petIds = userPets.map(pet => pet.id);
-  
-      const matches = await prisma.match.findMany({
-        where: {
-          OR: [{ pet1Id: { in: petIds } }, { pet2Id: { in: petIds } }]
-        },
-        include: {
-          pet1: true,
-          pet2: true
-        }
-      });
-  
-      res.json(matches);
-    } catch (error) {
-      console.error("Error fetching matches:", error);
-      res.status(500).send("Error fetching matches");
+  const auth0Id = req.auth.payload.sub;
+  console.log("Fetching matches for Auth0 ID:", auth0Id);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      select: { id: true },
+    });
+
+    if (!user) {
+      console.log("No user found for Auth0 ID:", auth0Id);
+      return res.status(404).json({ message: "User not found" });
     }
-  });  
-  
+
+    const userPets = await prisma.pet.findMany({
+      where: { ownerId: user.id },
+      select: { id: true },
+    });
+
+    if (!userPets.length) {
+      console.log("No pets found for user ID:", user.id);
+      return res.status(404).json({ message: "No pets found for this user." });
+    }
+
+    const petIds = userPets.map((pet) => pet.id);
+    console.log("Pet IDs found:", petIds);
+
+    const matches = await prisma.match.findMany({
+      where: {
+        OR: [{ pet1Id: { in: petIds } }, { pet2Id: { in: petIds } }],
+      },
+      include: {
+        pet1: true,
+        pet2: true,
+      },
+    });
+
+    console.log("Matches found:", matches);
+    res.json(matches);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+    res.status(500).send("Error fetching matches");
+  }
+});
+
 app.post("/verify-user", requireAuth, async (req, res) => {
   const auth0Id = req.auth.payload.sub;
   console.log("auth0Id", auth0Id);
@@ -348,18 +352,18 @@ app.delete("/api/pets/:id", requireAuth, async (req, res) => {
   res.status(204).send();
 });
 
-app.delete('/api/matches/:id', requireAuth, async (req, res) => {
-    const { id } = req.params;
-    try {
-      await prisma.match.delete({
-        where: { id: parseInt(id, 10) },
-      });
-      res.status(204).send();
-    } catch (error) {
-      console.error(`Failed to delete match with ID ${id}:`, error);
-      res.status(500).send('Failed to delete match');
-    }
-  });
+app.delete("/api/matches/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.match.delete({
+      where: { id: parseInt(id, 10) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    console.error(`Failed to delete match with ID ${id}:`, error);
+    res.status(500).send("Failed to delete match");
+  }
+});
 
 app.delete("/api/users/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
