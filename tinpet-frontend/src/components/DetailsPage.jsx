@@ -45,9 +45,8 @@ function DetailsPage() {
 
   const handleMatchClick = (petId) => {
     const newPetId = petId.toString();
-    setPetToMatch(newPetId); // 直接设置 petToMatch
+    setPetToMatch(newPetId);
 
-    // 需要匹配的逻辑移到 useEffect 中处理
     if (userPets.length === 1) {
       const userPetId = userPets[0].id.toString();
       if (userPetId !== newPetId) {
@@ -79,22 +78,36 @@ function DetailsPage() {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-
+  
+    if (userPets.some(pet => pet.id.toString() === petToMatch)) {
+      alert("You cannot match a pet with itself or with another of your own pets.");
+      setPetToMatch(null);
+      setSelectedPetIdForMatch("");
+      return;
+    }
+  
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-
+  
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
+  
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
     userPetId = parseInt(userPetId, 10);
     otherPetId = parseInt(otherPetId, 10);
+    const matchKey = `${userPetId}-${otherPetId}`;
 
+    if (matchedPets.has(matchKey)) {
+      alert("This match has already been created.");
+      return;
+    }
+  
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
       {
@@ -109,15 +122,14 @@ function DetailsPage() {
         }),
       }
     );
-
+  
     if (response.ok) {
-      setMatchedPets(
-        new Map(matchedPets.set(`${userPetId}-${otherPetId}`, true))
-      );
+      setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
       setPetToMatch(null);
     } else {
+      setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       const error = await response.json();
       alert(`Failed to create match: ${error.message}`);
     }

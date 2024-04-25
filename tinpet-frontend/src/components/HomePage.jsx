@@ -45,43 +45,35 @@ function HomePage() {
   }, [getAccessTokenSilently]);
 
   const handleMatchClick = (petId) => {
+    const newPetId = petId.toString();
     if (!isAuthenticated) {
       loginWithRedirect();
       return;
     }
 
-    setPetToMatch(prevPetToMatch => {
-        if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
-          return petId.toString();
-        }
-        return prevPetToMatch;
-      });
+    setPetToMatch(newPetId);
 
-    if (petToMatch) {
-      handleConfirmMatch();
-    } else {
-      setPetToMatch(petId.toString());
-
-      if (userPets.length > 1) {
-        setIsModalOpen(true);
-      } else if (userPets.length === 1) {
-        const userPetId = userPets[0].id.toString();
-        if (userPetId === petId.toString()) {
-          alert("You cannot match a pet with itself.");
-        } else {
-          setSelectedPetIdForMatch(userPetId);
-          handleConfirmMatch();
-        }
-      }
+    if (userPets.length === 1 && userPets[0].id.toString() !== newPetId) {
+      setSelectedPetIdForMatch(userPets[0].id.toString());
+    } else if (userPets.length > 1) {
+      setIsModalOpen(true);
     }
   };
 
+  useEffect(() => {
+    if (petToMatch && selectedPetIdForMatch) {
+      if (petToMatch === selectedPetIdForMatch) {
+        alert("Please make sure you have selected different pets to match.");
+        setPetToMatch(null);
+        setSelectedPetIdForMatch("");
+      } else {
+        handleConfirmMatch();
+      }
+    }
+  }, [petToMatch, selectedPetIdForMatch]);
+
   const handleConfirmMatch = () => {
-    if (
-      !selectedPetIdForMatch ||
-      !petToMatch ||
-      selectedPetIdForMatch === petToMatch
-    ) {
+    if (!selectedPetIdForMatch || !petToMatch) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
@@ -92,14 +84,27 @@ function HomePage() {
       return;
     }
 
+    if (userPets.some((pet) => pet.id.toString() === petToMatch)) {
+      alert(
+        "You cannot match a pet with itself or with another of your own pets."
+      );
+      setPetToMatch(null);
+      setSelectedPetIdForMatch("");
+      return;
+    }
+
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
 
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
-    userPetId = parseInt(userPetId, 10);
-    otherPetId = parseInt(otherPetId, 10);
+    const matchKey = `${userPetId}-${otherPetId}`;
+
+    if (matchedPets.has(matchKey)) {
+      alert("This match has already been created.");
+      return;
+    }
 
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
@@ -109,17 +114,12 @@ function HomePage() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          pet1Id: userPetId,
-          pet2Id: otherPetId,
-        }),
+        body: JSON.stringify({ pet1Id: userPetId, pet2Id: otherPetId }),
       }
     );
 
     if (response.ok) {
-      setMatchedPets(
-        new Map(matchedPets.set(`${userPetId}-${otherPetId}`, true))
-      );
+      setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       alert("Match created successfully!");
       setSelectedPetIdForMatch("");
       setPetToMatch(null);
