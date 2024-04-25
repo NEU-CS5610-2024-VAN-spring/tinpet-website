@@ -46,53 +46,58 @@ function DetailsPage() {
   const handleMatchClick = (petId) => {
     const newPetId = petId.toString();
     console.log(petToMatch, newPetId);
-  
-    // Update petToMatch every time a match button is clicked
     setPetToMatch(newPetId);
-  
-    // Directly handle matching if there's exactly one pet
-    if (userPets.length === 1) {
+
+    if (userPets.length > 1) {
+      setIsModalOpen(true);
+    } else if (userPets.length === 1) {
       const userPetId = userPets[0].id.toString();
       if (userPetId === newPetId) {
         alert("You cannot match a pet with itself.");
       } else {
         setSelectedPetIdForMatch(userPetId);
-        handleConfirmMatch(newPetId, userPetId); // Directly passing IDs for clarity
+        handleConfirmMatch(newPetId, userPetId);
       }
-    } else if (userPets.length > 1) {
-      // Defer modal opening to useEffect to ensure state is updated
-      setIsModalOpen(true);
     }
   };
-  
+
   useEffect(() => {
-    // This effect handles matching logic when modal is not necessary
-    if (userPets.length > 1 && petToMatch) {
-      // Ensure the modal is opened here if conditions meet, and it's not a self-match
-      const userPetId = userPets.find(pet => pet.id.toString() !== petToMatch)?.id.toString();
-      if (userPetId) {
-        setSelectedPetIdForMatch(userPetId);
-        // handleConfirmMatch could be called here if immediate match decision is needed
+    if (petToMatch) {
+      if (userPets.length > 1) {
+        setIsModalOpen(true);
+      } else if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petToMatch) {
+          alert("You cannot match a pet with itself.");
+          setPetToMatch(null);
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch(userPetId, petToMatch);
+        }
       }
     }
   }, [petToMatch, userPets]);
-  
-  const handleConfirmMatch = (petToMatchId, selectedPetId) => {
-    if (!selectedPetId || !petToMatchId || selectedPetId === petToMatchId) {
+
+  const handleConfirmMatch = () => {
+    if (
+      !selectedPetIdForMatch ||
+      !petToMatch ||
+      selectedPetIdForMatch === petToMatch
+    ) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-  
-    const matchKey = `${selectedPetId}-${petToMatchId}`;
+
+    const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-  
-    createMatch(selectedPetId, petToMatchId);
+
+    createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
-  
+
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
     userPetId = parseInt(userPetId, 10);
