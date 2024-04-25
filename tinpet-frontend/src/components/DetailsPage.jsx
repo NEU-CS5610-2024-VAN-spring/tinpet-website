@@ -28,7 +28,6 @@ function DetailsPage() {
         }
 
         const data = await response.json();
-        console.log("Data received from API:", data);
 
         if (petId) {
           setPetDetails(data);

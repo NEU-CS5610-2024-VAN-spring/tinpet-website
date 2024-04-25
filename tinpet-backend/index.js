@@ -156,7 +156,7 @@ app.get("/api/my-pets", requireAuth, async (req, res) => {
 
 app.get("/api/matches", requireAuth, async (req, res) => {
     const auth0Id = req.auth.payload.sub;
-  
+  console.log("auth0Id", auth0Id);
     try {
       const userPets = await prisma.pet.findMany({
         where: { ownerId: auth0Id },
