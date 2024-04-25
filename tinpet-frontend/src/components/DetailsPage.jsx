@@ -47,28 +47,31 @@ function DetailsPage() {
     console.log(petToMatch, petId.toString());
   
     setPetToMatch(prevPetToMatch => {
-      if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
-        return petId.toString();
+      const newPetId = petId.toString();
+  
+      if (!prevPetToMatch || prevPetToMatch !== newPetId) {
+        processMatch(newPetId);
+        return newPetId;
       }
+  
+      handleConfirmMatch();
       return prevPetToMatch;
     });
-  
-    if (petToMatch && petToMatch !== petId.toString()) {
-      handleConfirmMatch();
-    } else {
-      if (userPets.length > 1) {
-        setIsModalOpen(true);
-      } else if (userPets.length === 1) {
-        const userPetId = userPets[0].id.toString();
-        if (userPetId === petId.toString()) {
-          alert("You cannot match a pet with itself.");
-        } else {
-          setSelectedPetIdForMatch(userPetId);
-          handleConfirmMatch();
-        }
-      }
-    }
   };
+  
+  const processMatch = (newPetId) => {
+    if (userPets.length === 1) {
+      const userPetId = userPets[0].id.toString();
+      if (userPetId === newPetId) {
+        alert("You cannot match a pet with itself.");
+        return;
+      }
+      setSelectedPetIdForMatch(userPetId);
+      handleConfirmMatch();
+    } else if (userPets.length > 1) {
+      setIsModalOpen(true);
+    }
+  };  
   
   const handleConfirmMatch = () => {
     if (
