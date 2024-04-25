@@ -44,12 +44,18 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (petId) => {
-    console.log(petToMatch, petId.toString())
-    if (petToMatch && petToMatch !== petId.toString()) {
+    setPetToMatch(prevPetToMatch => {
+        if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
+          return petId.toString();
+        }
+        return prevPetToMatch;
+      });
+
+    if (petToMatch) {
       handleConfirmMatch();
     } else {
       setPetToMatch(petId.toString());
-  
+
       if (userPets.length > 1) {
         setIsModalOpen(true);
       } else if (userPets.length === 1) {

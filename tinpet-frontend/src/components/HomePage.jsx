@@ -50,6 +50,13 @@ function HomePage() {
       return;
     }
 
+    setPetToMatch(prevPetToMatch => {
+        if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
+          return petId.toString();
+        }
+        return prevPetToMatch;
+      });
+
     if (petToMatch) {
       handleConfirmMatch();
     } else {
