@@ -43,13 +43,33 @@ function DetailsPage() {
     setUserPets(data);
   }
 
-  setPetToMatch((prevPetToMatch) => {
-    if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
-      return petId.toString();
+  const handleMatchClick = (petId) => {
+    console.log(petToMatch, petId.toString());
+  
+    setPetToMatch(prevPetToMatch => {
+      if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
+        return petId.toString();
+      }
+      return prevPetToMatch;
+    });
+  
+    if (petToMatch && petToMatch !== petId.toString()) {
+      handleConfirmMatch();
+    } else {
+      if (userPets.length > 1) {
+        setIsModalOpen(true);
+      } else if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petId.toString()) {
+          alert("You cannot match a pet with itself.");
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch();
+        }
+      }
     }
-    return prevPetToMatch;
-  });
-
+  };
+  
   const handleConfirmMatch = () => {
     if (
       !selectedPetIdForMatch ||
