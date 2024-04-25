@@ -37,11 +37,6 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (petId) => {
-    if (!isAuthenticated) {
-      loginWithRedirect();
-      return;
-    }
-    
     setPetToMatch(petId.toString());
     
     if (userPets.length > 1) {
