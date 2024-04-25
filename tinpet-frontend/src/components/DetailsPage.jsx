@@ -44,51 +44,32 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (petId) => {
-    console.log(petToMatch, petId.toString());
-  
-    setPetToMatch(prevPetToMatch => {
-        if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
-          return petId.toString();
-        }
-        return prevPetToMatch;
-      });
+    const newPetId = petId.toString();
+    setPetToMatch(newPetId); // 直接设置 petToMatch
 
-    if (petToMatch) {
-      handleConfirmMatch();
-    } else {
-      setPetToMatch(petId.toString());
-
-      if (userPets.length > 1) {
-        setIsModalOpen(true);
-      } else if (userPets.length === 1) {
-        const userPetId = userPets[0].id.toString();
-        if (userPetId === petId.toString()) {
-          alert("You cannot match a pet with itself.");
-        } else {
-          setSelectedPetIdForMatch(userPetId);
-          handleConfirmMatch();
-        }
+    // 需要匹配的逻辑移到 useEffect 中处理
+    if (userPets.length === 1) {
+      const userPetId = userPets[0].id.toString();
+      if (userPetId !== newPetId) {
+        setSelectedPetIdForMatch(userPetId);
       }
+    } else if (userPets.length > 1) {
+      setIsModalOpen(true);
     }
   };
 
   useEffect(() => {
-    if (petToMatch) {
-      if (userPets.length > 1) {
-        setIsModalOpen(true);
-      } else if (userPets.length === 1) {
-        const userPetId = userPets[0].id.toString();
-        if (userPetId === petToMatch) {
-          alert("You cannot match a pet with itself.");
-          setPetToMatch(null);
-        } else {
-          setSelectedPetIdForMatch(userPetId);
-          handleConfirmMatch(userPetId, petToMatch);
-        }
+    if (petToMatch && selectedPetIdForMatch) {
+      if (petToMatch === selectedPetIdForMatch) {
+        alert("Please make sure you have selected different pets to match.");
+        setPetToMatch(null);
+        setSelectedPetIdForMatch("");
+      } else {
+        handleConfirmMatch();
       }
     }
-  }, [petToMatch, userPets]);
-  
+  }, [petToMatch, selectedPetIdForMatch]);
+
   const handleConfirmMatch = () => {
     if (
       !selectedPetIdForMatch ||
