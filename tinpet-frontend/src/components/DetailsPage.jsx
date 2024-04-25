@@ -44,40 +44,34 @@ function DetailsPage() {
   }
 
   const handleMatchClick = (petId) => {
-    const newPetId = petId.toString();
-    console.log(petToMatch, newPetId);
-    setPetToMatch(newPetId);
+    console.log(petToMatch, petId.toString());
+  
+    setPetToMatch(prevPetToMatch => {
+        if (!prevPetToMatch || prevPetToMatch !== petId.toString()) {
+          return petId.toString();
+        }
+        return prevPetToMatch;
+      });
 
-    if (userPets.length > 1) {
-      setIsModalOpen(true);
-    } else if (userPets.length === 1) {
-      const userPetId = userPets[0].id.toString();
-      if (userPetId === newPetId) {
-        alert("You cannot match a pet with itself.");
-      } else {
-        setSelectedPetIdForMatch(userPetId);
-        handleConfirmMatch(newPetId, userPetId);
-      }
-    }
-  };
-
-  useEffect(() => {
     if (petToMatch) {
+      handleConfirmMatch();
+    } else {
+      setPetToMatch(petId.toString());
+
       if (userPets.length > 1) {
         setIsModalOpen(true);
       } else if (userPets.length === 1) {
         const userPetId = userPets[0].id.toString();
-        if (userPetId === petToMatch) {
+        if (userPetId === petId.toString()) {
           alert("You cannot match a pet with itself.");
-          setPetToMatch(null);
         } else {
           setSelectedPetIdForMatch(userPetId);
-          handleConfirmMatch(userPetId, petToMatch);
+          handleConfirmMatch();
         }
       }
     }
-  }, [petToMatch, userPets]);
-
+  };
+  
   const handleConfirmMatch = () => {
     if (
       !selectedPetIdForMatch ||
