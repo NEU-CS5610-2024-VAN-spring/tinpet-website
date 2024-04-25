@@ -7,6 +7,9 @@ function DetailsPage() {
   const { petId } = useParams();
   const [petDetails, setPetDetails] = useState(null);
   const [allPets, setAllPets] = useState([]);
+  const [filteredPets, setFilteredPets] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterGender, setFilterGender] = useState("");
   const [selectedPetIdForMatch, setSelectedPetIdForMatch] = useState("");
   const [petToMatch, setPetToMatch] = useState(null);
   const [matchedPets, setMatchedPets] = useState(new Map());
@@ -18,6 +21,16 @@ function DetailsPage() {
     fetchPets();
     fetchUserPets();
   }, [getAccessTokenSilently, isAuthenticated]);
+
+  useEffect(() => {
+    const filtered = allPets.filter((pet) => {
+      return (
+        pet.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (filterGender ? pet.gender === filterGender : true)
+      );
+    });
+    setFilteredPets(filtered);
+  }, [searchTerm, filterGender, allPets]);
 
   async function fetchPets() {
     const token = await getAccessTokenSilently();
@@ -78,20 +91,22 @@ function DetailsPage() {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-  
-    if (userPets.some(pet => pet.id.toString() === petToMatch)) {
-      alert("You cannot match a pet with itself or with another of your own pets.");
+
+    if (userPets.some((pet) => pet.id.toString() === petToMatch)) {
+      alert(
+        "You cannot match a pet with itself or with another of your own pets."
+      );
       setPetToMatch(null);
       setSelectedPetIdForMatch("");
       return;
     }
-  
+
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-  
+
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
@@ -106,7 +121,7 @@ function DetailsPage() {
       alert("This match has already been created.");
       return;
     }
-  
+
     const response = await fetch(
       "https://assignment-03-77.onrender.com/api/matches",
       {
@@ -121,7 +136,7 @@ function DetailsPage() {
         }),
       }
     );
-  
+
     if (response.ok) {
       setMatchedPets(new Map(matchedPets.set(matchKey, true)));
       alert("Match created successfully!");
@@ -143,6 +158,24 @@ function DetailsPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">All Pets</h1>
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search pets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <select
+            value={filterGender}
+            onChange={(e) => setFilterGender(e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="">All Genders</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {allPets.map((pet) => (
             <div
@@ -155,7 +188,9 @@ function DetailsPage() {
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h2 className="text-xl font-semibold text-gray-700">{pet.name}</h2>
+                <h2 className="text-xl font-semibold text-gray-700">
+                  {pet.name}
+                </h2>
                 <p>{pet.breed}</p>
                 <p>{pet.age} years old</p>
                 <p>{pet.gender}</p>

@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import ProfilePage from "../components/ProfilePage"; // Adjust the import path as necessary
+import ProfilePage from "../components/ProfilePage";
 import { useAuth0 } from "@auth0/auth0-react";
 
 jest.mock("@auth0/auth0-react");
