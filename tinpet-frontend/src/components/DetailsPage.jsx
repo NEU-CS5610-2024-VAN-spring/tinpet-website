@@ -45,54 +45,49 @@ function DetailsPage() {
 
   const handleMatchClick = (petId) => {
     console.log(petToMatch, petId.toString());
+    const newPetId = petId.toString();
   
     setPetToMatch(prevPetToMatch => {
-      const newPetId = petId.toString();
-  
       if (!prevPetToMatch || prevPetToMatch !== newPetId) {
-        processMatch(newPetId);
         return newPetId;
       }
-  
-      handleConfirmMatch();
       return prevPetToMatch;
     });
   };
   
-  const processMatch = (newPetId) => {
-    if (userPets.length === 1) {
-      const userPetId = userPets[0].id.toString();
-      if (userPetId === newPetId) {
-        alert("You cannot match a pet with itself.");
-        return;
+  useEffect(() => {
+    if (petToMatch) {
+      if (userPets.length === 1) {
+        const userPetId = userPets[0].id.toString();
+        if (userPetId === petToMatch) {
+          alert("You cannot match a pet with itself.");
+          setPetToMatch(null);
+        } else {
+          setSelectedPetIdForMatch(userPetId);
+          handleConfirmMatch();
+        }
+      } else if (userPets.length > 1) {
+        setIsModalOpen(true);
       }
-      setSelectedPetIdForMatch(userPetId);
-      handleConfirmMatch();
-    } else if (userPets.length > 1) {
-      setIsModalOpen(true);
     }
-  };  
+  }, [petToMatch, userPets]);
   
   const handleConfirmMatch = () => {
-    if (
-      !selectedPetIdForMatch ||
-      !petToMatch ||
-      selectedPetIdForMatch === petToMatch
-    ) {
+    if (!selectedPetIdForMatch || !petToMatch || selectedPetIdForMatch === petToMatch) {
       alert("Please make sure you have selected different pets to match.");
       return;
     }
-
+  
     const matchKey = `${selectedPetIdForMatch}-${petToMatch}`;
     if (matchedPets.has(matchKey)) {
       alert("You have already matched these pets.");
       return;
     }
-
+  
     createMatch(selectedPetIdForMatch, petToMatch);
     setIsModalOpen(false);
   };
-
+  
   const createMatch = async (userPetId, otherPetId) => {
     const token = await getAccessTokenSilently();
     userPetId = parseInt(userPetId, 10);
