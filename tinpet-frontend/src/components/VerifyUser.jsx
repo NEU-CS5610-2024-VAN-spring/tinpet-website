@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useAuthToken } from "../AuthTokenContext"; // Adjust the import path as necessary
+import { useAuthToken } from "../AuthTokenContext";
 import { useNavigate } from "react-router-dom";
 
 export function VerifyUser() {
@@ -24,9 +24,8 @@ export function VerifyUser() {
           );
 
           if (response.ok) {
-            navigate("/"); // Navigate to home page on successful verification
+            navigate("/");
           } else {
-            // Handle server errors or unsuccessful verification
             console.error("Error verifying user:", await response.text());
           }
         } catch (error) {
@@ -42,7 +41,6 @@ export function VerifyUser() {
     }
   }, [isAuthenticated, accessToken, loginWithRedirect, navigate]);
 
-  // Optional: You might want to show different content based on the authentication/loading state
   if (!isAuthenticated) {
     return <div className="loading">Redirecting to login...</div>;
   } else if (!accessToken) {

@@ -52,7 +52,7 @@ function NavigationBar() {
           <li>
             <button
               onClick={() =>
-                logout({ returnTo: "https://tinpet-phi.vercel.app" })
+                logout({ returnTo: 'https://tinpet-phi.vercel.app' })
               }
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:text-gray-400"
             >
