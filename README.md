@@ -1,7 +1,21 @@
-# assignment-03
+# TinPet Website
 
-check canvas for instructions
+## Project Overview
+The TinPet Website is a project for CS5610 at Northeastern University, allowing users to create profiles for their pets and find matches.
 
-- **Profile Creation:** Users can create profiles for their pets, including photos, breed, age, interests, etc.
-- **Matching System:** Implement a matching algorithm or system where users can swipe right or left on other pet profiles to express interest.
-- **Search and Filter:** Allow users to search for pets based on gender, breed, age, and other preferences.
+## Features
+- **Profile Creation**: Users can create detailed profiles for their pets.
+- **Matching System**: Swipe functionality to like or dislike other pet profiles.
+- **Search and Filter**: Users can search for pets based on various criteria.
+
+## Installation
+git clone https://github.com/NEU-CS5610-2024-VAN-spring/tinpet-website
+cd tinpet-website
+npm install
+npm start
+
+## Contributors
+This project is developed by Shirui Chen of the CS5610 class.
+
+## License
+Licensed under the MIT License.
