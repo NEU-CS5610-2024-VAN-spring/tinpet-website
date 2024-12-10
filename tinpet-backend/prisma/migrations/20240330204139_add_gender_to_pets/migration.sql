@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Pet` ADD COLUMN `gender` VARCHAR(191) NULL;
